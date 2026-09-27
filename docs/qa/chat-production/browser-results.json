@@ -1,0 +1,91 @@
+{
+  "recordedAt": "2026-09-27T08:06:14.599Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "https://beatsync-server.zney295.id.vn/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "room-chat-desktop",
+      "messages": 4,
+      "languages": [
+        "vi",
+        "en"
+      ],
+      "restoredAfterReconnect": true,
+      "rematchHistory": true,
+      "actions": 43,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP"
+      ],
+      "winnerId": "14e38a7e-6849-4443-8a7a-8755309c70ae",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "room-chat-mobile",
+      "viewport": "390 × 844, touch",
+      "inputPx": 16,
+      "offlineDraftRetained": true,
+      "unread": true
+    },
+    {
+      "test": "two-player-full-game",
+      "gameId": "2101a3a4-9060-4548-8c53-7b918b69e122",
+      "nextGameId": "e0c336c1-f635-4b9b-ab77-17d96ee78728",
+      "actions": 32,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP"
+      ],
+      "winnerId": "037bd3ed-740d-4b86-b3bf-8ce39d143032",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 810,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.799999999999955,
+        "maxMs": 33.400000000000546,
+        "within16_7Percent": 70.12345679012346,
+        "within17Percent": 98.76543209876543
+      }
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 33,
+      "inserted": [
+        "MIDDLE_HIDDEN"
+      ],
+      "winnerId": "ddab8097-d2b9-45fa-b5ff-c4c2b2551f68",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 931,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "maxMs": 33.30000000000018,
+        "within16_7Percent": 66.9172932330827,
+        "within17Percent": 99.78517722878625
+      }
+    }
+  ]
+}

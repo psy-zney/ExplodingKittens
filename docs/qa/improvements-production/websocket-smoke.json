@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-09-27T07:11:27.053Z",
+  "origin": "https://beatsync-server.zney295.id.vn",
+  "socketPath": "/kittens/socket.io",
+  "viewerOrigin": "https://beatsync-server.zney295.id.vn",
+  "transport": "websocket",
+  "results": [
+    {
+      "players": 2,
+      "mode": "BASE",
+      "resurrection": false,
+      "actions": 13,
+      "gameId": "af17975b-d692-49e5-86f9-291dd3964dbe",
+      "winnerId": "e0811541-95bd-4727-9038-67d67897b68c",
+      "synchronized": true,
+      "rematch": true
+    },
+    {
+      "players": 3,
+      "mode": "EXTENDED",
+      "resurrection": true,
+      "actions": 40,
+      "gameId": "6bcff3f1-4d4e-48fd-a66e-d64302c04823",
+      "winnerId": "9d0cde06-1a51-431e-9851-13b5b4099288",
+      "synchronized": true,
+      "rematch": true
+    }
+  ]
+}

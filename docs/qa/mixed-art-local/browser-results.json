@@ -1,0 +1,99 @@
+{
+  "recordedAt": "2026-09-27T09:21:35.049Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://localhost:5182",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": false,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 1440,
+        "content": 1440
+      }
+    },
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": true,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 390,
+        "content": 390
+      }
+    },
+    {
+      "test": "two-player-full-game",
+      "gameId": "3e33f0b5-65b9-4f4c-8fae-2e0ce15055e9",
+      "nextGameId": "49209a15-d850-483b-bdf6-c7f58943b871",
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "b3402a13-2bdc-4ef6-aa61-2ebf90a6af9b",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 1152,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 66.70000000000073,
+        "maxMs": 1916.6,
+        "within16_7Percent": 55.208333333333336,
+        "within17Percent": 81.94444444444444
+      }
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 43,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP"
+      ],
+      "winnerId": "7b9ba37c-5b36-4ada-9325-faeb37e16dab",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 858,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 49.899999999999636,
+        "maxMs": 100.09999999999854,
+        "within16_7Percent": 59.79020979020979,
+        "within17Percent": 91.37529137529138
+      }
+    }
+  ]
+}

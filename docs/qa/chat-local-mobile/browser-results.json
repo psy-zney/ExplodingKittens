@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-09-27T08:01:38.531Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://localhost:5182",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "room-chat-mobile",
+      "viewport": "390 × 844, touch",
+      "inputPx": 16,
+      "offlineDraftRetained": true,
+      "unread": true
+    }
+  ]
+}

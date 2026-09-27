@@ -1,0 +1,116 @@
+{
+  "recordedAt": "2026-09-26T18:59:58.049Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://localhost:4173",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium, production web build at QA_BASE_URL and local game server; mobile viewport emulation on the same desktop CPU. No physical phone or production network measurement.",
+  "results": [
+    {
+      "test": "two-player-full-game",
+      "gameId": "6a3eddd0-74a7-4c24-9707-a94ff4549e0c",
+      "nextGameId": "ff4f51d2-915c-4be2-b5d1-e283e6955ea3",
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "0e0b6d9f-5a98-4aca-8fa8-7f37b99ae802",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 644,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "maxMs": 16.800000000000182,
+        "within16_7Percent": 68.63354037267081,
+        "within17Percent": 100
+      }
+    },
+    {
+      "test": "3-player-full-game",
+      "gameId": "4a25e9e1-e4ad-46da-95c8-86a67349c9a7",
+      "actions": 35,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "78981189-b17b-42ef-be51-efe672c92433",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "4-player-full-game",
+      "gameId": "c8463440-90be-454b-95e5-0b6d55e31ea5",
+      "actions": 35,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "6dbb7667-1eab-468d-91c1-89c08524d451",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "5-player-full-game",
+      "gameId": "ea69c69a-8445-4c31-a64b-9004eca8d39b",
+      "actions": 26,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "4c14a2ab-0a8b-4984-abdd-8e7e52f20bb3",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 24,
+      "inserted": [
+        "MIDDLE_HIDDEN"
+      ],
+      "winnerId": "a1cf6029-e8e5-46e2-b6a8-4a524de732b9",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 305,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "maxMs": 16.800000000000182,
+        "within16_7Percent": 68.85245901639344,
+        "within17Percent": 100
+      }
+    },
+    {
+      "test": "nope-window-reconnect",
+      "cardType": "SHUFFLE",
+      "revision": 3
+    }
+  ]
+}

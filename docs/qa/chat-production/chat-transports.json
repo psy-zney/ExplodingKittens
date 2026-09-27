@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-09-27T08:05:06.915Z",
+  "results": [
+    {
+      "origin": "https://beatsync-server.zney295.id.vn",
+      "transport": "websocket",
+      "messages": 2,
+      "senderVerified": true,
+      "spectator": true,
+      "roomIsolation": true,
+      "reconnectHistory": true
+    },
+    {
+      "origin": "https://beatsync-server.zney295.id.vn",
+      "transport": "polling",
+      "messages": 2,
+      "senderVerified": true,
+      "spectator": true,
+      "roomIsolation": true,
+      "reconnectHistory": true
+    },
+    {
+      "origin": "http://149.118.50.176:9000",
+      "transport": "websocket",
+      "messages": 2,
+      "senderVerified": true,
+      "spectator": true,
+      "roomIsolation": true,
+      "reconnectHistory": true
+    },
+    {
+      "origin": "http://149.118.50.176:9000",
+      "transport": "polling",
+      "messages": 2,
+      "senderVerified": true,
+      "spectator": true,
+      "roomIsolation": true,
+      "reconnectHistory": true
+    }
+  ]
+}

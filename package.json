@@ -1,0 +1,28 @@
+{
+  "name": "exxplore-kittens",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "predev": "npm run build -w @kittens/shared && npm run build -w @kittens/engine",
+    "dev": "concurrently -k -n server,web \"npm run dev -w @kittens/server\" \"npm run dev -w @kittens/web\"",
+    "build": "npm run build -w @kittens/shared && npm run build -w @kittens/engine && npm run build -w @kittens/server && npm run build -w @kittens/web",
+    "pretypecheck": "npm run build -w @kittens/shared && npm run build -w @kittens/engine",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "pretest": "npm run build -w @kittens/shared && npm run build -w @kittens/engine",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test --config scripts/playwright.config.ts",
+    "check:encoding": "node scripts/check-encoding.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

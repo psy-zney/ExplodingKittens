@@ -1,0 +1,132 @@
+{
+  "recordedAt": "2026-09-27T07:15:49.043Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "https://beatsync-server.zney295.id.vn/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "two-player-full-game",
+      "gameId": "48c35eaf-0405-4d62-b039-a2badb1ae6e6",
+      "nextGameId": "fc5b32fe-67eb-4ea5-bbb5-b7c0769d7bae",
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "68f2d425-83fc-444a-a06f-28d317a7672f",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 1255,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "maxMs": 33.399999999999636,
+        "within16_7Percent": 69.08366533864542,
+        "within17Percent": 99.76095617529882
+      }
+    },
+    {
+      "test": "3-player-full-game",
+      "gameId": "0c0367d6-9a05-4651-b20e-289e19bfd1dd",
+      "actions": 39,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "404544a6-3d67-4fe5-92e0-7414ef90517c",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "4-player-full-game",
+      "gameId": "7bb57424-fd88-4c3f-a700-fc3b7e5381bf",
+      "actions": 33,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "6ae183f5-8295-4734-831f-8cf1102d8cef",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "5-player-full-game",
+      "gameId": "eaca3c09-fbb3-4a7d-ad69-4a0be75ef4f2",
+      "actions": 28,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "9fdb1498-e999-4ba1-aa6d-4034df2b6645",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 43,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP"
+      ],
+      "winnerId": "be808b2b-a473-4827-9d59-bc3659661731",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 1294,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 16.799999999999272,
+        "maxMs": 16.80000000000291,
+        "within16_7Percent": 60.278207109737245,
+        "within17Percent": 100
+      }
+    },
+    {
+      "test": "nope-window-reconnect",
+      "cardType": "ATTACK",
+      "revision": 3
+    },
+    {
+      "test": "autoplay-real-full-game",
+      "frames": {
+        "samples": 8292,
+        "medianMs": 16.69999999999709,
+        "p95Ms": 16.79999999998836,
+        "maxMs": 33.30000000000291,
+        "within16_7Percent": 73.86637723106608,
+        "within17Percent": 99.97588036661843
+      }
+    }
+  ]
+}

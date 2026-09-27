@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-09-27T07:12:53.974Z",
+  "origin": "http://149.118.50.176:9000",
+  "socketPath": "/kittens/socket.io",
+  "viewerOrigin": "http://149.118.50.176:9000",
+  "transport": "websocket",
+  "results": [
+    {
+      "players": 2,
+      "mode": "BASE",
+      "resurrection": false,
+      "actions": 27,
+      "gameId": "d6c9e6a3-1a75-4f12-946a-8eac82096965",
+      "winnerId": "d9461e02-4a8d-47e5-9792-a9202f133c45",
+      "synchronized": true,
+      "rematch": true
+    },
+    {
+      "players": 3,
+      "mode": "EXTENDED",
+      "resurrection": true,
+      "actions": 22,
+      "gameId": "0b42a594-862d-41ca-b182-0a524a7d9c68",
+      "winnerId": "089437f2-dae6-4e30-aa1a-0ca8267b6cbb",
+      "synchronized": true,
+      "rematch": true
+    }
+  ]
+}

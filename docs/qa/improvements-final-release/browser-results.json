@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-09-27T07:26:56.169Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "https://beatsync-server.zney295.id.vn/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "two-player-full-game",
+      "gameId": "b1981f6d-23cc-4aac-90b9-cf50638854d5",
+      "nextGameId": "5a274257-1ccb-46b2-b29c-411e572c7846",
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "7a2c9e53-8051-4f6a-86c6-6561b8b2f739",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 1190,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "maxMs": 16.80000000000109,
+        "within16_7Percent": 64.87394957983193,
+        "within17Percent": 100
+      }
+    },
+    {
+      "test": "nope-window-reconnect",
+      "cardType": "SEE_THE_FUTURE",
+      "revision": 3
+    }
+  ]
+}

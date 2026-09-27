@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-09-27T07:13:03.196Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://149.118.50.176:9000/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "two-player-full-game",
+      "gameId": "ec158ad9-0a5f-4885-942b-90af5087c761",
+      "nextGameId": "60e3d38f-5bb7-4cda-bcb0-89fe6537a4ed",
+      "actions": 31,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP"
+      ],
+      "winnerId": "fb8b617a-0312-4b86-982e-f929e70e7a46",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 989,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "maxMs": 83.29999999999995,
+        "within16_7Percent": 75.6319514661274,
+        "within17Percent": 98.88776541961577
+      }
+    }
+  ]
+}

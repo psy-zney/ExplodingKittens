@@ -1,0 +1,23 @@
+services:
+  game-server:
+    build:
+      context: .
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-http://localhost:3001}
+        VITE_SOCKET_PATH: ${VITE_SOCKET_PATH:-/socket.io}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    image: exxplore-kittens-server:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      SOCKET_PATH: ${SOCKET_PATH:-/socket.io}
+    ports:
+      - "127.0.0.1:3105:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

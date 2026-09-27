@@ -1,0 +1,49 @@
+{
+  "recordedAt": "2026-09-27T09:26:04.185Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://localhost:5182",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": false,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 1440,
+        "content": 1440
+      }
+    },
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": true,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 390,
+        "content": 390
+      }
+    }
+  ]
+}
