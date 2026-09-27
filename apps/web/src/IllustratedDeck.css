@@ -6,6 +6,9 @@
 .room-ticket .button{color:#fff6eb;border-color:#fff6eb}
 .entry-form-panel{background:#fff1e8;box-shadow:7px 8px 0 #dec0b0}
 .entry-mark,.brand-icon{background:#efc4af;color:#813c32}
+.entry-mark.entry-mark-gif{background:#fff5eb;border:4px solid var(--ink);border-radius:28px;overflow:hidden;box-shadow:8px 10px 0 #dec0b0;display:flex;align-items:center;justify-content:center;padding:0}
+.entry-mark.entry-mark-gif .cat-mascot-gif{width:100%;height:100%;object-fit:cover;display:block}
+.brand-icon.brand-icon-gif{background:#fff5eb;object-fit:cover;border-radius:50%;border:1.5px solid var(--ink);display:inline-block;vertical-align:middle}
 .table-felt{background:#edc8b8;border-color:#d4a692}
 .table-felt::before{border-color:#cc9b87}
 .empty-discard{background:#f5dacb;color:#936154;border-color:#c9917b}
