@@ -1,8 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameEvent } from './types';
-import { describeEffects } from './effectDescriptors';
+import { describeEffects, effectSound } from './effectDescriptors';
 
 export type AudioSettings = { master: number; music: number; sfx: number; mute: boolean };
+
+export const MEME_AUDIO_MAP: Record<string, string> = {
+  win: '/audio/win_borat.mp3',
+  explosion: '/audio/boom_vine.mp3',
+  defuse_1: '/audio/defuse_ocean.mp3',
+  defuse_2: '/audio/defuse_tada.mp3',
+  draw: '/audio/draw_buy.mp3',
+  nope: '/audio/nope_tf2.mp3',
+  attack: '/audio/attack_nani.mp3',
+  skip: '/audio/skip_bye.mp3',
+  peek: '/audio/peek_mystic.mp3',
+  favor: '/audio/favor_yoink.mp3',
+  shuffle: '/audio/shuffle_spin.mp3'
+};
+
+const audioBufferCache: Record<string, AudioBuffer> = {};
+
+async function loadMemeAudio(context: AudioContext, url: string): Promise<AudioBuffer | null> {
+  if (audioBufferCache[url]) return audioBufferCache[url];
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}${url.replace(/^\//, '')}`);
+    if (!res.ok) return null;
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = await context.decodeAudioData(arrayBuffer);
+    audioBufferCache[url] = buffer;
+    return buffer;
+  } catch {
+    return null;
+  }
+}
+
+export function preloadAllMemeAudios(context: AudioContext) {
+  for (const url of Object.values(MEME_AUDIO_MAP)) {
+    void loadMemeAudio(context, url);
+  }
+}
 const STORAGE_KEY = 'kittens.audio';
 const DEFAULT: AudioSettings = { master: 0.7, music: 0.45, sfx: 0.75, mute: false };
 
@@ -225,15 +261,74 @@ function scheduleBeat(state: SoundState) {
 }
 
 /** Phát hiệu ứng âm thanh (Sound Effects - SFX) sắc nét, chân thực */
-function cue(state: SoundState, name: string, now: number) {
+function cue(state: SoundState, name: string, now: number, meta?: { defuseCount?: number }) {
   const { context, sfxGain, duckGain, noiseBuffer } = state;
 
-  // Giảm nhẹ tiếng nhạc nền khi có SFX nổi bật (Audio Ducking)
+  // Determine meme audio key
+  let memeKey = name;
+  if (name === 'defuse') {
+    memeKey = (meta?.defuseCount && meta.defuseCount >= 2) ? 'defuse_2' : 'defuse_1';
+  }
+
+  const memeUrl = MEME_AUDIO_MAP[memeKey];
+  if (memeUrl) {
+    const cached = audioBufferCache[memeUrl];
+    if (cached) {
+      const source = context.createBufferSource();
+      source.buffer = cached;
+      source.connect(sfxGain);
+      source.start(now, 0, Math.min(cached.duration, .65));
+
+      // Duck music for the duration of the meme sound
+      const duckDuration = Math.min(cached.duration, .65);
+      duckGain.gain.cancelScheduledValues(now);
+      duckGain.gain.setTargetAtTime(0.15, now, 0.02);
+      duckGain.gain.setTargetAtTime(1, now + duckDuration * 0.8, 0.25);
+      return;
+    } else {
+      void loadMemeAudio(context, memeUrl);
+    }
+  }
+
+  // Giảm nhẹ tiếng nhạc nền khi có SFX nổi bật (Audio Ducking fallback)
   duckGain.gain.cancelScheduledValues(now);
   duckGain.gain.setTargetAtTime(0.35, now, 0.02);
   duckGain.gain.setTargetAtTime(1, now + 0.35, 0.25);
 
   switch (name) {
+    case 'throw_egg':
+    case 'throw_bomb':
+    case 'throw_rock':
+      noiseBurst(context,noiseBuffer,sfxGain,now,.12,.12,'bandpass',2100,800);
+      if(name==='throw_egg'){noiseBurst(context,noiseBuffer,sfxGain,now+.37,.13,.18,'lowpass',1400);tone(context,sfxGain,now+.4,450,.08,.1,'sine',180);}
+      if(name==='throw_bomb'){tone(context,sfxGain,now+.36,130,.2,.22,'sine',38);noiseBurst(context,noiseBuffer,sfxGain,now+.37,.18,.15,'lowpass',900,180);}
+      if(name==='throw_rock'){tone(context,sfxGain,now+.37,380,.08,.17,'triangle',110);tone(context,sfxGain,now+.42,700,.07,.08,'sine');}
+      break;
+    case 'start':
+      [330,440,550].forEach((hz,i)=>tone(context,sfxGain,now+i*.09,hz,.12,.12,'triangle'));
+      break;
+    case 'eliminate':
+      [440,330,220].forEach((hz,i)=>tone(context,sfxGain,now+i*.1,hz,.14,.12,'triangle',hz*.8));
+      break;
+    case 'skip':
+      tone(context,sfxGain,now,420,.16,.14,'sine',1100);
+      noiseBurst(context,noiseBuffer,sfxGain,now,.12,.08,'bandpass',1800,3500);break;
+    case 'favor':catMeow(context,sfxGain,now,'beg');break;
+    case 'dig':
+      [0,.08,.16].forEach((delay,i)=>noiseBurst(context,noiseBuffer,sfxGain,now+delay,.06,.12,'bandpass',600+i*230));break;
+    case 'hamster':
+      tone(context,sfxGain,now,260,.12,.13,'triangle',80);tone(context,sfxGain,now+.09,740,.12,.11,'sine',380);break;
+    case 'bat':
+      [0,.07,.14].forEach(delay=>noiseBurst(context,noiseBuffer,sfxGain,now+delay,.045,.1,'highpass',3000));break;
+    case 'duel':
+      [220,330,660].forEach((hz,i)=>tone(context,sfxGain,now+i*.1,hz,.1,.1,'triangle'));break;
+    case 'plus':
+      [660,880].forEach((hz,i)=>tone(context,sfxGain,now+i*.08,hz,.12,.13,'sine'));break;
+    case 'redeal':
+    case 'twins':
+      [0,.08,.16,.24].forEach((delay,i)=>{noiseBurst(context,noiseBuffer,sfxGain,now+delay,.045,.07,'bandpass',1800);tone(context,sfxGain,now+delay,name==='twins'?600+i*90:400+i*100,.055,.08,'sine');});break;
+    case 'ui_select':
+      tone(context,sfxGain,now,780*(.96+Math.random()*.08),.05,.1,'sine',420);break;
     case 'explosion':
       // 💥 Vụ nổ bom dữ dội: Tiếng nổ Sub-Bass + White noise vỡ tan + Tiếng mèo kêu giật mình
       noiseBurst(context, noiseBuffer, sfxGain, now, 0.85, 0.42, 'lowpass', 600, 40);
@@ -322,6 +417,8 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
   const [enabled, setEnabled] = useState(false);
   const stateRef = useRef<SoundState | null>(null);
   const seenRef = useRef(new Set<string>());
+  const defuseCountRef = useRef<number>(0);
+  const previewDefuseToggle = useRef<boolean>(false);
 
   const enable = useCallback(async () => {
     if (stateRef.current) {
@@ -340,12 +437,15 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     const duckGain = context.createGain();
     const sfxGain = context.createGain();
     const noiseBuffer = createNoiseBuffer(context);
+    preloadAllMemeAudios(context);
 
     // Route: music -> duckGain -> masterGain -> destination
     musicGain.connect(duckGain).connect(masterGain);
     // Route: sfx -> masterGain -> destination
     sfxGain.connect(masterGain);
-    masterGain.connect(context.destination);
+    const limiter=context.createDynamicsCompressor();
+    limiter.threshold.value=-10;limiter.knee.value=12;limiter.ratio.value=12;limiter.attack.value=.003;limiter.release.value=.18;
+    masterGain.connect(limiter).connect(context.destination);
 
     const initialMaster = settings.mute ? 0 : settings.master;
     masterGain.gain.setValueAtTime(initialMaster, context.currentTime);
@@ -407,6 +507,9 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
 
   /** Chuyển đổi chế độ nhạc BGM giữa Sảnh (lobby) và Bàn chơi (game) */
   useEffect(() => {
+    if (mode === 'lobby') {
+      defuseCountRef.current = 0;
+    }
     if (stateRef.current) {
       stateRef.current.mode = mode;
       stateRef.current.nextBeat = Math.max(stateRef.current.nextBeat, stateRef.current.context.currentTime + 0.1);
@@ -424,9 +527,16 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     for (const effect of effects) {
       if (seenRef.current.has(effect.id)) continue;
       seenRef.current.add(effect.id);
+      if (effect.kind === 'defuse') {
+        defuseCountRef.current += 1;
+      }
+      if (effect.kind === 'start' || effect.kind === 'win') {
+        defuseCountRef.current = 0;
+      }
       if (!state || !enabled || document.hidden || settings.mute) continue;
       const at = Math.max(state.context.currentTime + 0.01, state.nextCue);
-      cue(state, effect.kind, at);
+      const snd = effectSound(effect);
+      cue(state, snd, at, { defuseCount: defuseCountRef.current });
       state.nextCue = at + Math.max(0.16, effect.duration / 1000);
     }
     if (seenRef.current.size > 200) {
@@ -454,7 +564,12 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
   const playSfx = useCallback((name: string) => {
     const state = stateRef.current;
     if (state && enabled && !settings.mute && !document.hidden) {
-      cue(state, name, state.context.currentTime);
+      if (name === 'defuse') {
+        previewDefuseToggle.current = !previewDefuseToggle.current;
+        cue(state, 'defuse', state.context.currentTime, { defuseCount: previewDefuseToggle.current ? 1 : 2 });
+      } else {
+        cue(state, name, state.context.currentTime);
+      }
     }
   }, [enabled, settings.mute]);
 

@@ -3,6 +3,7 @@ import { calculateDeckScaling } from '@kittens/shared';
 import { CardView } from './CardView';
 import { cardName, EXPANSION_TYPES, t } from './i18n';
 import type { Language, Room, RoomMode, ServerSnapshot } from './types';
+import { DECK_PREVIEW_TYPES } from './cardPresentation';
 import { useGameConnection } from './useGameConnection';
 import { useAudio, type AudioSettings } from './useAudio';
 import { Table } from './Table';
@@ -11,11 +12,6 @@ import { eventText } from './eventText';
 import { useModalFocus } from './useModalFocus';
 import { LobbyLoading } from './LobbyLoading';
 import { CardCodexModal } from './CardCodexModal';
-import { DefuseDraft } from './DefuseDraft';
-import { SocialToolbar, SocialEffects } from './SocialPlayground';
-import { GameEffects } from './GameEffects';
-import { InteractionFeedback } from './InteractionFeedback';
-import './playfulGame.css';
 
 function storedChoice<T extends string>(key: string, fallback: T): T {
   return (localStorage.getItem(key) as T) || fallback;
@@ -27,6 +23,9 @@ function usePreference<T extends string>(key: string, fallback: T): [T, (value: 
   return [value, setValue];
 }
 
+function DeckPreview({ lang }: { lang: Language }) {
+  return <div className="mixed-deck-preview"><div className="mixed-deck-cards" aria-hidden="true">{DECK_PREVIEW_TYPES.map(type => <CardView key={type} card={{ instanceId: `preview-${type}`, type }} lang={lang} compact/>)}</div><p><strong>{t(lang, 'mixedDeck')}</strong><span>{t(lang, 'mixedDeckNote')}</span></p></div>;
+}
 
 function RulePanel({ lang, room, onClose }: { lang: Language; room: Room | null; onClose: () => void }) {
   const modalRef = useModalFocus();
@@ -81,10 +80,10 @@ function Entry({ lang, connection, busy, createRoom, joinRoom, onOpenCodex }: {
   const [resurrection, setResurrection] = useState(false);
   const valid = name.trim().length >= 1 && connection === 'connected' && !busy;
   return <main className={`entry-layout lang-${lang}`}>
-    <section className="entry-intro"><div className="entry-mark entry-mark-gif" aria-hidden="true"><img src="/cat-ok.gif" alt="Cat Mascot" className="cat-mascot-gif" /></div><span className="eyebrow">01 / {lang === 'vi' ? 'BÀN BÀI' : 'THE TABLE'}</span><h1>{t(lang, 'brand')}<span className="title-dot">.</span></h1><p>{t(lang, 'tagline')}</p><div className="entry-aside">{lang === 'vi' ? 'Một con mèo trông có vẻ đã đọc luật. Không ai tin nó.' : 'One cat appears to have read the rules. Nobody believes it.'}</div></section>
+    <section className="entry-intro"><div className="entry-mark" aria-hidden="true"><span className="entry-cat-ears">⌃ &nbsp; ⌃</span><span>◡</span></div><span className="eyebrow">01 / {lang === 'vi' ? 'BÀN BÀI' : 'THE TABLE'}</span><h1>{t(lang, 'brand')}<span className="title-dot">.</span></h1><p>{t(lang, 'tagline')}</p><div className="entry-aside">{lang === 'vi' ? 'Một con mèo trông có vẻ đã đọc luật. Không ai tin nó.' : 'One cat appears to have read the rules. Nobody believes it.'}</div></section>
     <section className="entry-form-panel" aria-label={t(lang, 'playNow')}>
       <label className="field"><span>{t(lang, 'nickname')}</span><input maxLength={24} value={name} onChange={event => setName(event.currentTarget.value)} placeholder={t(lang, 'nicknamePlaceholder')} autoComplete="nickname"/></label>
-      
+      <DeckPreview lang={lang}/>
       <div className="entry-actions"><button className="button button-primary button-large" type="button" disabled={!valid} onClick={() => void createRoom(name, { mode, resurrection })}>{t(lang, 'createRoom')} <span aria-hidden="true">↗</span></button>
       <div className="join-row"><label className="field"><span>{t(lang, 'roomCode')}</span><input value={code} onChange={event => setCode(event.currentTarget.value.toUpperCase())} maxLength={12} placeholder="ABCD12" autoCapitalize="characters"/></label><button className="button button-outline" type="button" disabled={!valid || code.trim().length !== 6} onClick={() => void joinRoom(name, code)}>{t(lang, 'joinRoom')}</button></div><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}><button className="text-button watch-link" type="button" disabled={!valid || code.trim().length !== 6} onClick={() => void joinRoom(name, code, true)}>{t(lang, 'watchRoom')}</button><button className="text-button" type="button" onClick={onOpenCodex} style={{ fontWeight: 800, color: 'var(--accent)' }}>{t(lang, 'previewCardsAction')}</button></div></div>
       <details className="create-options"><summary>{t(lang, 'settings')}</summary><div className="form-options"><label className="field"><span>{t(lang, 'mode')}</span><select value={mode} onChange={event => setMode(event.currentTarget.value as RoomMode)}><option value="BASE">{t(lang, 'mode.BASE')}</option><option value="EXTENDED">{t(lang, 'mode.EXTENDED')}</option></select></label><label className="toggle-row"><span>{t(lang, 'resurrection')} <small>{t(lang, 'resurrection.short')}</small></span><input type="checkbox" checked={resurrection} onChange={event => setResurrection(event.currentTarget.checked)}/></label></div></details>
@@ -186,23 +185,18 @@ export default function App() {
   useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setSettingsOpen(false); setRulesOpen(false); setCodexOpen(false); } }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, []);
   const error = game.error ? t(lang, `error.${game.error.code}`) === `error.${game.error.code}` ? t(lang, 'errorDefault') : t(lang, `error.${game.error.code}`) : '';
   return <div className={`app-shell ${reduced || skip ? 'motion-reduced' : ''}`}>
-    <header className="topbar"><div className="brand-lockup"><img src="/cat-ok.gif" alt="Logo" className="brand-icon brand-icon-gif" aria-hidden="true" /><span>{t(lang, 'brand')}</span></div><div className="topbar-actions"><button className="topbar-link" type="button" onClick={() => { audio.playSfx('ui_click'); setCodexOpen(true); }} style={{ fontWeight: 800 }}>{t(lang, 'cardCodex')} ✦</button><span className={`connection-indicator ${game.connection}`} title={t(lang, game.connection === 'connected' ? 'connected' : game.connection === 'offline' ? 'offline' : 'connecting')}/><div className="language-switch" role="group" aria-label={t(lang, 'language')}><button type="button" className={lang === 'vi' ? 'active' : ''} aria-pressed={lang === 'vi'} onClick={() => { audio.playSfx('ui_click'); setLang('vi'); }}>VI</button><button type="button" className={lang === 'en' ? 'active' : ''} aria-pressed={lang === 'en'} onClick={() => { audio.playSfx('ui_click'); setLang('en'); }}>EN</button></div>{room && <button className="topbar-link" type="button" onClick={() => { audio.playSfx('ui_click'); setRulesOpen(true); }}>{t(lang, 'rules')}</button>}<button className="icon-button header-sound" type="button" onClick={() => { audio.playSfx('ui_click'); audio.toggleMute(); }} title={t(lang, audio.settings.mute ? 'unmute' : 'mute')} aria-label={t(lang, audio.settings.mute ? 'unmute' : 'mute')}>{audio.settings.mute ? '🔇' : '🔊'}</button><button className="icon-button header-settings" type="button" onClick={() => { audio.playSfx('ui_click'); setSettingsOpen(true); }} aria-label={t(lang, 'settings')}>☷</button></div></header>
+    <header className="topbar"><div className="brand-lockup"><span className="brand-icon" aria-hidden="true">◡</span><span>{t(lang, 'brand')}</span></div><div className="topbar-actions"><button className="topbar-link" type="button" onClick={() => { audio.playSfx('ui_click'); setCodexOpen(true); }} style={{ fontWeight: 800 }}>{t(lang, 'cardCodex')} ✦</button><span className={`connection-indicator ${game.connection}`} title={t(lang, game.connection === 'connected' ? 'connected' : game.connection === 'offline' ? 'offline' : 'connecting')}/><div className="language-switch" role="group" aria-label={t(lang, 'language')}><button type="button" className={lang === 'vi' ? 'active' : ''} aria-pressed={lang === 'vi'} onClick={() => { audio.playSfx('ui_click'); setLang('vi'); }}>VI</button><button type="button" className={lang === 'en' ? 'active' : ''} aria-pressed={lang === 'en'} onClick={() => { audio.playSfx('ui_click'); setLang('en'); }}>EN</button></div>{room && <button className="topbar-link" type="button" onClick={() => { audio.playSfx('ui_click'); setRulesOpen(true); }}>{t(lang, 'rules')}</button>}<button className="icon-button header-sound" type="button" onClick={() => { audio.playSfx('ui_click'); audio.toggleMute(); }} title={t(lang, audio.settings.mute ? 'unmute' : 'mute')} aria-label={t(lang, audio.settings.mute ? 'unmute' : 'mute')}>{audio.settings.mute ? '🔇' : '🔊'}</button><button className="icon-button header-settings" type="button" onClick={() => { audio.playSfx('ui_click'); setSettingsOpen(true); }} aria-label={t(lang, 'settings')}>☷</button></div></header>
     {game.connection === 'offline' && <div className="connection-banner" role="status">{t(lang, 'offline')}</div>}
     {error && <div className="error-toast" role="alert"><span>{error}</span><button type="button" onClick={game.dismissError} aria-label={t(lang, 'close')}>×</button></div>}
     {!room && <Entry lang={lang} connection={game.connection} busy={game.busy} createRoom={game.createRoom} joinRoom={game.joinRoom} onOpenCodex={() => setCodexOpen(true)}/>}
     {room && <div className="room-layout"><div className="room-main">
-      <SocialToolbar key={room.code} players={room.players} selfId={game.session?.playerId} lang={lang} online={game.connection==='connected'} send={game.throwProp}/>
-      {room.status==='DEALING'&&game.snapshot?.draft&&<DefuseDraft draft={game.snapshot.draft} lang={lang} selfId={game.session?.playerId} players={room.players} busy={game.busy} online={game.connection==='connected'} offset={game.clockOffsetMs} choose={game.chooseDefuse}/>}
       {room.status === 'LOBBY' && <Lobby lang={lang} room={room} selfId={game.session?.playerId} busy={game.busy} ready={game.ready} start={game.start} settings={game.settings} leave={game.leaveRoom} onOpenCodex={() => setCodexOpen(true)}/>}
       {room.status === 'PLAYING' && game.snapshot?.game && <Table lang={lang} room={room} game={game.snapshot.game} selfId={game.session?.playerId} liveEvents={game.liveEvents} busy={game.busy} online={game.connection === 'connected'} clockOffsetMs={game.clockOffsetMs} action={game.gameAction} reduced={reduced || skip}/>}
       {room.status === 'FINISHED' && game.snapshot && <Results lang={lang} snapshot={game.snapshot} selfId={game.session?.playerId} rematch={game.rematch} leave={game.leaveRoom} busy={game.busy}/>}
-      {game.snapshot?.game&&<GameEffects events={game.liveEvents} gameId={game.snapshot.game.public.gameId} selfId={game.session?.playerId} lang={lang} players={game.snapshot.game.public.players} reduced={reduced||skip}/>}
     </div><RoomSidebar key={room.code} lang={lang} room={room} game={game.snapshot?.game?.public} selfId={game.session?.playerId} events={game.events} messages={game.snapshot?.chatMessages ?? game.events.filter(event => event.key === 'chat.message')} online={game.connection === 'connected'} busy={game.busy} send={game.chat}/></div>}
     {rulesOpen && <RulePanel lang={lang} room={room} onClose={() => setRulesOpen(false)}/>}
     {settingsOpen && <SettingsPanel lang={lang} settings={audio.settings} setSettings={audio.setSettings} enabled={audio.enabled} enable={audio.enable} reduced={reduced} setReduced={setReduced} skip={skip} setSkip={setSkip} onClose={() => setSettingsOpen(false)}/>}
     {codexOpen && <CardCodexModal lang={lang} onClose={() => setCodexOpen(false)} onPlaySfx={audio.playSfx}/>}
-    {room&&<SocialEffects key={room.code} events={game.liveEvents} lang={lang} players={room.players} reduced={reduced||skip}/>}
-    <InteractionFeedback sound={audio.playSfx} reduced={reduced||skip}/>
     {((!room && (game.busy || game.connection === 'connecting')) || (room?.status === 'LOBBY' && (game.busy || game.connection === 'connecting'))) && <LobbyLoading lang={lang} context={game.connection === 'connecting' ? 'connecting' : !room ? 'create' : 'ready'}/>}
     {room && <footer className="app-footer"><span>{room.code}</span><span>{room.players.length} {lang === 'vi' ? 'người' : 'players'} · 💣 {Math.max(1, room.players.length - 1)} Boom · 🛡️ {room.players.length + (room.players.length >= 5 ? 1 : 2)} Defuse</span><span>{room.options.mode === 'BASE' ? '56' : '64'} {lang === 'vi' ? 'lá' : 'cards'}{room.options.resurrection ? ' + 2' : ''}</span><span>{game.events.some(event => event.key !== 'event.hidden') ? eventText(lang, game.events.filter(event => event.key !== 'event.hidden').at(-1)!, room.players) : t(lang, 'tagline')}</span></footer>}
   </div>;
