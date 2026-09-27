@@ -5,7 +5,7 @@ import './lobbyLoading.css';
 interface LobbyLoadingProps {
   lang: Language;
   message?: string;
-  context?: 'create' | 'join' | 'start' | 'ready' | 'settings' | 'connecting' | 'default';
+  context?: 'initial' | 'create' | 'join' | 'start' | 'ready' | 'settings' | 'connecting' | 'default';
 }
 
 const QUOTES: Record<Language, string[]> = {
@@ -33,18 +33,20 @@ const QUOTES: Record<Language, string[]> = {
 
 const TITLES: Record<Language, Record<string, string>> = {
   vi: {
+    initial: 'Đang nạp tài nguyên game Mèo Nổ…',
     create: 'Đang tạo phòng chơi mới…',
     join: 'Đang vào bàn bài…',
-    start: 'Đang bắt đầu ván đấu…',
+    start: 'Đang nạp tài nguyên & xáo cọc bài…',
     ready: 'Đang đồng bộ trạng thái sẵn sàng…',
     settings: 'Đang lưu cài đặt phòng…',
     connecting: 'Đang kết nối tới máy chủ…',
     default: 'Mèo đang xử lý…'
   },
   en: {
+    initial: 'Loading Exploding Kittens game assets…',
     create: 'Creating your table…',
     join: 'Joining the table…',
-    start: 'Starting the match…',
+    start: 'Loading assets & shuffling deck…',
     ready: 'Updating ready status…',
     settings: 'Updating room settings…',
     connecting: 'Connecting to server…',
@@ -69,21 +71,13 @@ export function LobbyLoading({ lang, message, context = 'default' }: LobbyLoadin
   return (
     <div className="lobby-loading-overlay" role="alert" aria-busy="true" aria-live="polite">
       <div className="lobby-loading-card">
-        <div className="lobby-cat-avatar" aria-hidden="true">
-          <div className="lobby-cat-ears">
-            <span>⌃</span>
-            <span>⌃</span>
-          </div>
-          <div className="lobby-cat-face">◡</div>
-          <div className="lobby-cat-paws">
-            <span>🐾</span>
-            <span>🐾</span>
-          </div>
+        <div className="loader-holder" aria-hidden="true">
+          <div className="loader" />
         </div>
 
         <div className="lobby-loading-pill">
           <span className="loading-pulse-dot" />
-          <span>{lang === 'vi' ? 'ĐANG TẢI DỮ LIỆU' : 'LOADING TABLE'}</span>
+          <span>{lang === 'vi' ? 'ĐANG NẠP TÀI NGUYÊN GAME' : 'LOADING GAME ASSETS'}</span>
         </div>
 
         <h3 className="loading-title">{title}</h3>

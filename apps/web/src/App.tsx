@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { calculateDeckScaling } from '@kittens/shared';
 import { CardView } from './CardView';
 import { DECK_PREVIEW_TYPES } from './cardPresentation';
@@ -178,6 +178,9 @@ function Results({ lang, snapshot, selfId, rematch, leave, busy }: { lang: Langu
 
 export default function App() {
   const [lang, setLang] = usePreference<Language>('kittens.language', 'vi');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [startingMatch, setStartingMatch] = useState(false);
+  const prevRoomStatus = useRef<string | undefined>(undefined);
   const [reduced, setReduced] = useState(() => localStorage.getItem('kittens.reducedMotion') === 'true' || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [skip, setSkip] = useState(() => localStorage.getItem('kittens.skipAnimation') === 'true');
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -189,6 +192,26 @@ export default function App() {
   useEffect(() => { localStorage.setItem('kittens.reducedMotion', String(reduced)); }, [reduced]);
   useEffect(() => { localStorage.setItem('kittens.skipAnimation', String(skip)); }, [skip]);
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  useEffect(() => {
+    // Initial resource loading: preload images and audio buffers
+    const catGif = new Image();
+    catGif.src = import.meta.env.BASE_URL + 'cat-ok.gif';
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 1100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (prevRoomStatus.current === 'LOBBY' && room?.status === 'PLAYING') {
+      setStartingMatch(true);
+      const timer = setTimeout(() => setStartingMatch(false), 1200);
+      prevRoomStatus.current = room?.status;
+      return () => clearTimeout(timer);
+    }
+    prevRoomStatus.current = room?.status;
+  }, [room?.status]);
+
   useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setSettingsOpen(false); setRulesOpen(false); setCodexOpen(false); } }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, []);
   const error = game.error ? t(lang, `error.${game.error.code}`) === `error.${game.error.code}` ? t(lang, 'errorDefault') : t(lang, `error.${game.error.code}`) : '';
   return <div className={`app-shell ${reduced || skip ? 'motion-reduced' : ''}`}>
@@ -206,7 +229,9 @@ export default function App() {
     {rulesOpen && <RulePanel lang={lang} room={room} onClose={() => setRulesOpen(false)}/>}
     {settingsOpen && <SettingsPanel lang={lang} settings={audio.settings} setSettings={audio.setSettings} enabled={audio.enabled} enable={audio.enable} reduced={reduced} setReduced={setReduced} skip={skip} setSkip={setSkip} onClose={() => setSettingsOpen(false)}/>}
     {codexOpen && <CardCodexModal lang={lang} onClose={() => { audio.stopSfx(); setCodexOpen(false); }} onPlaySfx={audio.playSfx} onStopSfx={audio.stopSfx}/>}
-    {((!room && (game.busy || game.connection === 'connecting')) || (room?.status === 'LOBBY' && (game.busy || game.connection === 'connecting'))) && <LobbyLoading lang={lang} context={game.connection === 'connecting' ? 'connecting' : !room ? 'create' : 'ready'}/>}
+    {initialLoading && <LobbyLoading lang={lang} context="initial" />}
+    {startingMatch && <LobbyLoading lang={lang} context="start" />}
+    {!initialLoading && !startingMatch && ((!room && (game.busy || game.connection === 'connecting')) || (room?.status === 'LOBBY' && (game.busy || game.connection === 'connecting'))) && <LobbyLoading lang={lang} context={game.connection === 'connecting' ? 'connecting' : !room ? 'create' : 'ready'}/>}
     {room&&<SocialEffects key={room.code} events={game.liveEvents} lang={lang} players={room.players} reduced={reduced||skip}/>}
     <InteractionFeedback sound={audio.playSfx} reduced={reduced||skip}/>
     {room && <footer className="app-footer"><span>{room.code}</span><span>{room.players.length} {lang === 'vi' ? 'người' : 'players'} · 💣 {Math.max(1, room.players.length - 1)} Boom · 🛡️ {room.players.length + (room.players.length >= 5 ? 1 : 2)} Defuse</span><span>{room.options.mode === 'BASE' ? '56' : '64'} {lang === 'vi' ? 'lá' : 'cards'}{room.options.resurrection ? ' + 2' : ''}</span><span>{game.events.some(event => event.key !== 'event.hidden') ? eventText(lang, game.events.filter(event => event.key !== 'event.hidden').at(-1)!, room.players) : t(lang, 'tagline')}</span></footer>}
