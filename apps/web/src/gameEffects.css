@@ -9,7 +9,7 @@
 .effect-card-front .card-title{font-size:.66rem}.effect-card-front .cat-art-svg{height:53px}.effect-card-front .card-category,.effect-card-front .card-corner{display:none}
 .effect-flip.has-face{animation:effect-flip var(--effect-ms) ease both}.effect-flip.face-up{animation:none;transform:rotateY(180deg)}
 .effect-attack .effect-flight{animation-name:effect-slam}
-.effect-nope{position:absolute;top:38%;left:50%;background:var(--ink);color:var(--paper);font-size:clamp(2rem,5vw,4rem);font-weight:950;padding:6px 24px;animation:effect-nope .3s ease both;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--ink)}
+.nope-stopper{position:absolute;top:38%;left:50%;background:var(--ink);color:var(--paper);font-size:clamp(2rem,5vw,4rem);font-weight:950;padding:6px 24px;animation:effect-nope .3s ease both;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--ink)}
 .effect-cat-scene{position:absolute;top:33%;left:50%;transform:translateX(-50%);text-align:center}
 .effect-cat{background:var(--paper);color:var(--accent-dark);border:3px solid var(--accent);border-radius:40%;padding:14px 17px;font-size:2rem;font-weight:950}
 .effect-puff{display:block;margin-top:8px;font-size:1.2rem;font-weight:900;color:var(--accent-dark)}
@@ -19,7 +19,7 @@
 .effect-revive{font-size:1.6rem;animation:effect-boing .42s ease both}
 .effects-reduced .effect-flight{animation:none;transform:translate3d(calc(var(--to-x) - 43px),calc(var(--to-y) - 59px),0)}
 .effects-reduced .effect-flip.has-face{animation:none;transform:rotateY(180deg)}
-.effects-reduced .effect-nope{animation:none;transform:translateX(-50%) rotate(-4deg)}
+.effects-reduced .nope-stopper{animation:none;transform:translateX(-50%) rotate(-4deg)}
 .effects-reduced .effect-cat,.effects-reduced .effect-puff,.effects-reduced .effect-revive{animation:none}
 @keyframes effect-flight{0%{transform:translate3d(calc(var(--from-x) - 43px),calc(var(--from-y) - 59px),0) rotate(-8deg) scale(.9);opacity:.6}70%{opacity:1}100%{transform:translate3d(calc(var(--to-x) - 43px),calc(var(--to-y) - 59px),0) rotate(5deg) scale(.85);opacity:0}}
 @keyframes effect-flip{0%,45%{transform:rotateY(0)}80%,100%{transform:rotateY(180deg)}}

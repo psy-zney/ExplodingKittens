@@ -10,6 +10,7 @@ interface CardCodexModalProps {
   lang: Language;
   onClose: () => void;
   onPlaySfx?: (name: string) => void;
+  onStopSfx?: () => void;
 }
 
 type FilterTab = 'ALL' | 'BASE' | 'EXTENDED' | 'RESURRECTION' | 'DANGER' | 'ACTION' | 'MATCH';
@@ -94,7 +95,7 @@ const CARD_SFX: Partial<Record<CardType, string>> = {
   RESURRECTION: 'revive'
 };
 
-export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps) {
+export function CardCodexModal({ lang, onClose, onPlaySfx, onStopSfx }: CardCodexModalProps) {
   const modalRef = useModalFocus();
   const [selectedType, setSelectedType] = useState<CardType>('EXPLODING_KITTEN');
   const [tab, setTab] = useState<FilterTab>('ALL');
@@ -116,7 +117,13 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
   const visual = CARD_VISUALS[selectedType];
   const countInfo = CARD_COUNTS[selectedType];
 
+  const handleClose = () => {
+    onStopSfx?.();
+    onClose();
+  };
+
   const handleSelectCard = (type: CardType) => {
+    onStopSfx?.();
     setSelectedType(type);
     setAnimKey(prev => prev + 1);
     if (onPlaySfx) {
@@ -126,6 +133,7 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
   };
 
   const replayAnimation = () => {
+    onStopSfx?.();
     setAnimKey(prev => prev + 1);
     if (onPlaySfx) {
       const sfx = CARD_SFX[selectedType] || 'ui_click';
@@ -137,7 +145,7 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
     <div
       className="modal-backdrop"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) handleClose();
       }}
     >
       <section
@@ -156,7 +164,7 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
               <span className="codex-badge-count">{filteredList.length}</span>
             </h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label={t(lang, 'close')}>
+          <button className="icon-button" type="button" onClick={handleClose} aria-label={t(lang, 'close')}>
             ×
           </button>
         </header>
@@ -166,49 +174,49 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
           <button
             type="button"
             className={`codex-tab ${tab === 'ALL' ? 'active' : ''}`}
-            onClick={() => setTab('ALL')}
+            onClick={() => { onStopSfx?.(); setTab('ALL'); }}
           >
             {lang === 'vi' ? `Tất cả (${ALL_TYPES.length})` : `All Cards (${ALL_TYPES.length})`}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'BASE' ? 'active' : ''}`}
-            onClick={() => setTab('BASE')}
+            onClick={() => { onStopSfx?.(); setTab('BASE'); }}
           >
             {lang === 'vi' ? `Bản gốc (${BASE_CARD_TYPES.length})` : `Original (${BASE_CARD_TYPES.length})`}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'EXTENDED' ? 'active' : ''}`}
-            onClick={() => setTab('EXTENDED')}
+            onClick={() => { onStopSfx?.(); setTab('EXTENDED'); }}
           >
             {lang === 'vi' ? 'Mở rộng (8)' : 'Expansion (8)'}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'RESURRECTION' ? 'active' : ''}`}
-            onClick={() => setTab('RESURRECTION')}
+            onClick={() => { onStopSfx?.(); setTab('RESURRECTION'); }}
           >
             {lang === 'vi' ? 'Hồi sinh (1)' : 'Resurrection (1)'}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'DANGER' ? 'active' : ''}`}
-            onClick={() => setTab('DANGER')}
+            onClick={() => { onStopSfx?.(); setTab('DANGER'); }}
           >
             {lang === 'vi' ? 'Nổ & Cứu' : 'Danger & Safe'}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'ACTION' ? 'active' : ''}`}
-            onClick={() => setTab('ACTION')}
+            onClick={() => { onStopSfx?.(); setTab('ACTION'); }}
           >
             {lang === 'vi' ? 'Tác động & Chặn' : 'Action & Block'}
           </button>
           <button
             type="button"
             className={`codex-tab ${tab === 'MATCH' ? 'active' : ''}`}
-            onClick={() => setTab('MATCH')}
+            onClick={() => { onStopSfx?.(); setTab('MATCH'); }}
           >
             {lang === 'vi' ? '5 Họ Mèo Combo' : 'Cat Combos'}
           </button>

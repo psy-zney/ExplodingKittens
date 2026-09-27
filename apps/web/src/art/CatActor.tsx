@@ -1,7 +1,8 @@
 import type { ArtStyle, CardType } from '../types';
+import { Expression } from './Expression';
 
 // Original characters: the pose and expression respond to the card's story.
-export function CatActor({ type, style }: { type: CardType; style: ArtStyle }) {
+export function CatActor({ type, style, variant=0 }: { type: CardType; style: ArtStyle; variant?:number }) {
   const running = ['ATTACK', 'SKIP', 'ROBIN_HOOD'].includes(type);
   const floating = ['CAT_RAINBOW', 'RESURRECTION', 'HIP_BAT'].includes(type);
   const startled = type === 'EXPLODING_KITTEN' || type === 'CREEPY_PEEKY';
@@ -39,10 +40,12 @@ export function CatActor({ type, style }: { type: CardType; style: ArtStyle }) {
     <path d="m25 43-3-28 27 15q14-6 28 0l27-15-3 29q16 28-8 40-35 16-63-3-18-11-5-38Z" fill={fur}/>
     <path d="m29 25 3 15 12-5m52-10-3 15-12-5" fill={pink} stroke="none"/>
     <path d={running ? 'M37 93 20 87 9 100m72-8 18-14 12 3M90 125q26 5 19-15' : type === 'NOPE' ? 'M41 96 33 106m47-10 21-22 8 5-7 28M91 126q27 3 21-16' : 'M39 93q9 18 21 16m22-15q-7 17-21 15M89 124q28 7 23-15'} fill="none"/>
+    {type==='DEFUSE'||type==='EXPLODING_KITTEN'?<Expression boom={type==='EXPLODING_KITTEN'} variant={variant}/>:<g>
     {startled ? <><ellipse cx="45" cy="53" rx="9" ry="12" fill="#fff8e9"/><ellipse cx="81" cy="53" rx="9" ry="12" fill="#fff8e9"/><circle cx="45" cy="54" r="2" fill={dark}/><circle cx="81" cy="54" r="2" fill={dark}/></> : sleepy ? <path d="M36 54h16m20 0h17M37 50l13 1m24-1 13 1"/> : <><ellipse cx="45" cy="54" rx="4" ry="6" fill={dark} stroke="none"/><ellipse cx="81" cy="54" rx="4" ry="6" fill={dark} stroke="none"/></>}
     {stern && <path d="m34 42 17 6m23 0 17-6" strokeWidth="4"/>}
     <path d="m58 64 5 5 5-5Z" fill={pink} stroke="none"/>
     <path d={startled ? 'M59 75q4-6 8 0v7h-8Z' : stern ? 'M52 75h23l-5 11H57Z' : 'M51 73q6 11 12 1 7 10 13-1'} fill={stern ? pink : 'none'}/>
+    </g>}
     <path d="m28 60-17-6m17 16-18 4m90-14 16-6m-17 16 17 4M36 132l12 1m32-1h12"/>
     <path d="m55 89 8 6 8-6M42 104l-4 11m47-8 5 9" stroke="var(--scene-pop,#da734c)" strokeWidth="5"/>
     {style === 'pen' && <path d="m31 43-1 9m9 30 9 3m-9 29-2 7m35-1 8 1m4-86-3 7" strokeWidth="1" opacity=".6"/>}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, CardType, GameAction } from '@kittens/shared';
-import { applyAction, assertInvariants, createGame, getPrivateSnapshot, getPublicSnapshot, getSpectatorSnapshot, tick, type GameState } from '../src/index.js';
+import { applyAction, assertInvariants, createGame, makeDeck, getPrivateSnapshot, getPublicSnapshot, getSpectatorSnapshot, tick, type GameState } from '../src/index.js';
 
 const rng=()=>0.37;
 const seeds=[{id:'a',name:'A'},{id:'b',name:'B'},{id:'c',name:'C'},{id:'d',name:'D'},{id:'e',name:'E'}];
@@ -42,6 +42,33 @@ function play(state:GameState,id:string,types:CardType[],targetId?:string,reques
 }
 
 describe('base setup and core rules',()=>{
+  it('gives every physical Defuse and Boom a stable distinct expression',()=>{
+    for(const [type,count] of [['DEFUSE',6],['EXPLODING_KITTEN',4]] as const){
+      const cards=makeDeck('BASE',false).filter(c=>c.type===type);
+      expect(cards).toHaveLength(count);
+      expect(new Set(cards.map(c=>c.artVariant)).size).toBe(count);
+      expect(cards).toEqual(makeDeck('BASE',false).filter(c=>c.type===type));
+    }
+  });
+  it.each([2,3,4,5])('deals the chosen physical rescue cats plus seven cards for %i players',count=>{
+    const defuses=makeDeck('BASE',false).filter(c=>c.type==='DEFUSE').reverse();
+    const choices=Object.fromEntries(seeds.slice(0,count).map((p,i)=>[p.id,defuses[i]!.instanceId]));
+    const state=createGame({gameId:'draft',players:seeds.slice(0,count),now:5000,rng,defuseChoices:choices});
+    state.players.forEach((p,i)=>{
+      expect(p.hand).toHaveLength(8);
+      expect(p.hand[0]).toEqual(defuses[i]);
+      expect(p.hand.slice(1).every(c=>c.type!=='DEFUSE'&&c.type!=='EXPLODING_KITTEN')).toBe(true);
+    });
+    expect(state.deadlineAt).toBe(35000);
+    assertInvariants(state);
+  });
+  it('rejects colliding, foreign or non-Defuse draft choices',()=>{
+    const id=makeDeck('BASE',false).find(c=>c.type==='DEFUSE')!.instanceId;
+    for(const choices of [{a:id,b:id},{outsider:id},{a:'card-1'}])expect(()=>createGame({gameId:'g',players:seeds.slice(0,2),defuseChoices:choices})).toThrow('INVALID_DEFUSE_SELECTION');
+    const partial=createGame({gameId:'g',players:seeds.slice(0,3),defuseChoices:{b:id}});
+    expect(pl(partial,'b').hand[0]!.instanceId).toBe(id);
+    assertInvariants(partial);
+  });
   it('rejects empty and four-card plays without changing the original state',()=>{
     const state=game();
     const before=structuredClone(state);

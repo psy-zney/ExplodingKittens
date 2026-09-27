@@ -18,6 +18,21 @@ export const MEME_AUDIO_MAP: Record<string, string> = {
   shuffle: '/audio/shuffle_spin.mp3'
 };
 
+/** Giới hạn thời lượng hoạt động tối đa cho mỗi hiệu ứng âm thanh (tránh phát lê thê, chen lấn) */
+export const MEME_DURATION_CAP: Record<string, number> = {
+  win: 3.5,
+  explosion: 1.8,
+  defuse_1: 2.6,
+  defuse_2: 2.2,
+  draw: 0.8,
+  nope: 1.1,
+  attack: 2.2,
+  skip: 1.8,
+  peek: 2.2,
+  favor: 1.2,
+  shuffle: 1.5
+};
+
 const audioBufferCache: Record<string, AudioBuffer> = {};
 
 async function loadMemeAudio(context: AudioContext, url: string): Promise<AudioBuffer | null> {
@@ -62,7 +77,33 @@ type SoundState = {
   beat: number;
   interval: number;
   mode: 'lobby' | 'game';
+  activeSfxSource: AudioBufferSourceNode | null;
+  activeSfxGain: GainNode | null;
 };
+
+/** Dừng ngay lập tức âm thanh SFX cũ đang phát để không bị chen lấn, chồng chéo */
+function stopCurrentSfx(state: SoundState) {
+  if (state.activeSfxSource && state.activeSfxGain) {
+    try {
+      const now = state.context.currentTime;
+      state.activeSfxGain.gain.cancelScheduledValues(now);
+      state.activeSfxGain.gain.setValueAtTime(state.activeSfxGain.gain.value, now);
+      state.activeSfxGain.gain.linearRampToValueAtTime(0.0001, now + 0.015);
+      state.activeSfxSource.stop(now + 0.02);
+    } catch {
+      // Ignored if already ended
+    }
+  }
+  state.activeSfxSource = null;
+  state.activeSfxGain = null;
+  // Phục hồi âm lượng nhạc nền
+  try {
+    state.duckGain.gain.cancelScheduledValues(state.context.currentTime);
+    state.duckGain.gain.setTargetAtTime(1, state.context.currentTime, 0.08);
+  } catch {
+    // Ignored
+  }
+}
 
 /** Tạo Noise Buffer dùng chung để tạo tiếng nổ, tiếng xáo bài, tiếng rút bài, tiếng móng cào, trống */
 function createNoiseBuffer(ctx: AudioContext): AudioBuffer {
@@ -264,6 +305,9 @@ function scheduleBeat(state: SoundState) {
 function cue(state: SoundState, name: string, now: number, meta?: { defuseCount?: number }) {
   const { context, sfxGain, duckGain, noiseBuffer } = state;
 
+  // Luôn ngắt âm thanh SFX cũ đang phát trước khi phát âm thanh mới ("ko chen")
+  stopCurrentSfx(state);
+
   // Determine meme audio key
   let memeKey = name;
   if (name === 'defuse') {
@@ -274,16 +318,35 @@ function cue(state: SoundState, name: string, now: number, meta?: { defuseCount?
   if (memeUrl) {
     const cached = audioBufferCache[memeUrl];
     if (cached) {
+      const maxCap = MEME_DURATION_CAP[memeKey] ?? 2.5;
+      const playDuration = Math.min(cached.duration, maxCap);
+
       const source = context.createBufferSource();
       source.buffer = cached;
-      source.connect(sfxGain);
-      source.start(now, 0, Math.min(cached.duration, .65));
+
+      const individualGain = context.createGain();
+      individualGain.gain.setValueAtTime(1, now);
+      // Fade out nhẹ nhàng ở 30ms cuối để không bị nổ âm
+      individualGain.gain.setValueAtTime(1, now + playDuration - 0.03);
+      individualGain.gain.linearRampToValueAtTime(0.0001, now + playDuration);
+
+      source.connect(individualGain).connect(sfxGain);
+      source.start(now, 0, playDuration);
+
+      state.activeSfxSource = source;
+      state.activeSfxGain = individualGain;
+
+      source.onended = () => {
+        if (state.activeSfxSource === source) {
+          state.activeSfxSource = null;
+          state.activeSfxGain = null;
+        }
+      };
 
       // Duck music for the duration of the meme sound
-      const duckDuration = Math.min(cached.duration, .65);
       duckGain.gain.cancelScheduledValues(now);
-      duckGain.gain.setTargetAtTime(0.15, now, 0.02);
-      duckGain.gain.setTargetAtTime(1, now + duckDuration * 0.8, 0.25);
+      duckGain.gain.setTargetAtTime(0.18, now, 0.02);
+      duckGain.gain.setTargetAtTime(1, now + playDuration * 0.85, 0.25);
       return;
     } else {
       void loadMemeAudio(context, memeUrl);
@@ -464,7 +527,9 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
       nextBeat: context.currentTime + 0.1,
       nextCue: context.currentTime,
       interval: 0,
-      mode
+      mode,
+      activeSfxSource: null,
+      activeSfxGain: null
     };
 
     state.interval = window.setInterval(() => {
@@ -527,6 +592,13 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     for (const effect of effects) {
       if (seenRef.current.has(effect.id)) continue;
       seenRef.current.add(effect.id);
+
+      // Khi kết thúc lượt / đánh xong chuyển lượt -> tắt âm thanh kéo dài của lượt cũ
+      const turnEndKeys = ['card.drawn', 'turn.started', 'turn.timeout', 'room.started'];
+      if (turnEndKeys.includes(effect.event.key) && state) {
+        stopCurrentSfx(state);
+      }
+
       if (effect.kind === 'defuse') {
         defuseCountRef.current += 1;
       }
@@ -561,9 +633,18 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
   }, [settings.music]);
 
   /** Phát âm thanh UI tiện ích (click, hover) */
+  const stopSfx = useCallback(() => {
+    const state = stateRef.current;
+    if (state) {
+      stopCurrentSfx(state);
+    }
+  }, []);
+
   const playSfx = useCallback((name: string) => {
     const state = stateRef.current;
     if (state && enabled && !settings.mute && !document.hidden) {
+      // Dừng âm thanh cũ trước khi phát âm thanh mới
+      stopCurrentSfx(state);
       if (name === 'defuse') {
         previewDefuseToggle.current = !previewDefuseToggle.current;
         cue(state, 'defuse', state.context.currentTime, { defuseCount: previewDefuseToggle.current ? 1 : 2 });
@@ -588,5 +669,5 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     }
   }, []);
 
-  return { settings, enabled, enable, setSettings, playSfx, toggleMute };
+  return { settings, enabled, enable, setSettings, playSfx, stopSfx, toggleMute };
 }

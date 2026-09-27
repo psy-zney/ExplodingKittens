@@ -1,3 +1,17 @@
+## Chọn Cứu Nổ trong 5 giây — quy tắc mở ván của ứng dụng
+
+Host bắt đầu khi 2–5 người sẵn sàng và kết nối. Phòng chuyển LOBBY → DEALING; server tạo gameId và deadline now + 5000 ms. Sáu lá Cứu Nổ vật lý công khai có instanceId và artVariant riêng, cùng tác dụng. Mỗi người chọn đúng một lá trống; queue phòng quyết định người thắng khi chọn trùng. Lựa chọn được khóa, retry cùng lá không tạo thêm sự kiện.
+
+Đợi đủ 5 giây kể cả khi tất cả đã chọn. Trong thời gian này game:null, chưa tạo engine hay chia tay bài. Hết giờ server xáo các Cứu Nổ còn lại bằng RNG bảo mật để cấp cho người chưa chọn, rồi mới tạo game: đúng lá Cứu Nổ được nhận cộng bảy lá thường mỗi người. Đưa tối đa hai Cứu Nổ dư và số Mèo Nổ bằng người chơi trừ một vào bộ rút; loại các lá dư như luật cơ bản.
+
+Spectator chỉ xem, không chọn. Disconnect hoặc rời phòng lúc DEALING giữ ghế/lựa chọn/deadline; reconnect bằng token nhận lại trạng thái. Hết giờ người vắng được tự phân lá; timer lượt bắt đầu sau khi chia. Từ chối chọn muộn hoặc gameId cũ. Rematch tạo draft mới. Đây là quy tắc ứng dụng, không nhận là luật Original Edition.
+
+## Biểu cảm và đồ chơi
+
+Sáu biểu cảm Cứu Nổ và bốn biểu cảm Mèo Nổ gắn với từng lá vật lý. artVariant giữ nguyên khi rút, cướp, đưa, bỏ, nhét lại/chia lại; không quyết định luật.
+
+Trứng, bom đồ chơi và đá nhỏ chỉ là tương tác mỹ thuật. Ghế sống, bị loại và spectator ném vào một ghế cùng phòng, tối đa một lần/1500 ms/session. Không gây sát thương hay đổi bài, lượt, revision, deadline. Public event chỉ có danh tính gửi/nhận và prop. Browser tự tìm tọa độ avatar; không gửi DOM, tọa độ hay tiến độ chèn bài. Retry actionId không nhân đôi; reconnect giữ log nhưng không phát lại animation.
+
 # Rule contract / Hợp đồng luật
 
 This document is the rule source for the application. The original 56-card deck and core turn rules follow the [Original Edition instructions](https://www.explodingkittens.com/pages/rules-kittens) and [official field guide](https://www.explodingkittens.com/pages/comprehensive-field-guide), subject to the explicit online timing and privacy rules below. The eight 64-card effects and Resurrection are **application expansion rules / luật mở rộng của ứng dụng**, not claimed to be official Original Edition rules.

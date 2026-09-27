@@ -5,6 +5,7 @@ import { createGameServer } from './server.js';
 
 type Ack = { ok: boolean; error?: { code: string }; [key: string]: unknown };
 type Snapshot = {
+  draft: null | {gameId:string;deadlineAt:number;cards:Array<{instanceId:string;type:string;artVariant:number}>;choices:Record<string,string>};
   serverNow: number;
   room: { code: string; status: string; players: Array<{ id: string; connected: boolean }> };
   game: null | {
@@ -66,7 +67,7 @@ describe('Socket.IO room server', () => {
     return { socket, token: session.token, playerId: session.playerId };
   }
 
-  async function startRoom(count: number) {
+  async function startRoom(count: number, deal=true) {
     const players = await Promise.all(Array.from({ length: count }, (_, i) => guest(`Cat ${i + 1}`)));
     const creator = players[0]!;
     const create = await withAck(creator.socket, 'room:create', { options: { mode: 'BASE', resurrection: false } });
@@ -77,8 +78,88 @@ describe('Socket.IO room server', () => {
     }
     for (const player of players) expect((await withAck(player.socket, 'room:ready', { ready: true })).ok).toBe(true);
     expect((await withAck(creator.socket, 'room:start')).ok).toBe(true);
+    if(deal){
+      const draft=server.rooms.get(roomCode)!.draft!;
+      logicalNow += 5000;
+      expect((await withAck(creator.socket,'room:choose-defuse',{gameId:draft.gameId,cardId:draft.cards[0]!.instanceId,actionId:randomUUID()})).error?.code).toBe('DRAFT_FINISHED');
+      expect(server.rooms.get(roomCode)!.status).toBe('PLAYING');
+    }
     return { players, roomCode };
   }
+
+  it('locks concurrent Defuse picks, holds the full five seconds and deals only afterwards',async()=>{
+    const {players,roomCode}=await startRoom(3,false),room=server.rooms.get(roomCode)!;
+    const watcher=await guest('Watcher');
+    let watched=nextSnapshot(watcher.socket);
+    expect((await withAck(watcher.socket,'room:watch',{roomCode})).ok).toBe(true);
+    const before=await watched,draft=before.draft!;
+    expect(before.game).toBeNull();expect(draft.cards).toHaveLength(6);
+    expect(draft.cards.every(c=>c.type==='DEFUSE')).toBe(true);
+    expect(new Set(draft.cards.map(c=>c.artVariant)).size).toBe(6);
+    expect(draft.deadlineAt-logicalNow).toBe(5000);
+    expect((await withAck(watcher.socket,'room:choose-defuse',{gameId:draft.gameId,cardId:draft.cards[0]!.instanceId,actionId:randomUUID()})).error?.code).toBe('NOT_PLAYER');
+    const same={gameId:draft.gameId,cardId:draft.cards[4]!.instanceId,actionId:randomUUID()};
+    const race=await Promise.all(players.slice(0,2).map(p=>withAck(p.socket,'room:choose-defuse',same)));
+    expect(race.filter(a=>a.ok)).toHaveLength(1);expect(race.find(a=>!a.ok)?.error?.code).toBe('DEFUSE_TAKEN');
+    const winner=players[race.findIndex(a=>a.ok)]!,seq=room.sequence;
+    expect((await withAck(winner.socket,'room:choose-defuse',same)).ok).toBe(true);expect(room.sequence).toBe(seq);
+    expect((await withAck(winner.socket,'room:choose-defuse',{...same,cardId:draft.cards[1]!.instanceId,actionId:randomUUID()})).error?.code).toBe('DEFUSE_ALREADY_CHOSEN');
+    logicalNow+=4999;await new Promise(resolve=>setTimeout(resolve,15));expect(room.game).toBeNull();
+    watched=nextSnapshot(watcher.socket);logicalNow+=1;
+    const after=await watched;expect(after.draft).toBeNull();expect(after.game?.private).toBeNull();
+    expect(room.game!.players.find(p=>p.id===winner.playerId)!.hand[0]!.instanceId).toBe(same.cardId);
+    expect(room.game!.players.every(p=>p.hand.length===8)).toBe(true);
+    expect(new Set(room.game!.players.map(p=>p.hand[0]!.instanceId)).size).toBe(3);
+    expect((await withAck(winner.socket,'room:choose-defuse',same)).error?.code).toBe('DRAFT_FINISHED');
+  });
+
+  it('preserves draft selection and deadline across authenticated reconnect and a departing seat',async()=>{
+    const {players,roomCode}=await startRoom(2,false),room=server.rooms.get(roomCode)!,draft=structuredClone(room.draft!);
+    const payload={gameId:draft.gameId,cardId:draft.cards[5]!.instanceId,actionId:randomUUID()};
+    expect((await withAck(players[1]!.socket,'room:choose-defuse',payload)).ok).toBe(true);
+    players[1]!.socket.disconnect();logicalNow+=1000;
+    const rejoined=await guest('Cat 2',players[1]!.token),reconnect=nextSnapshot(rejoined.socket);
+    expect((await withAck(rejoined.socket,'room:join',{roomCode})).ok).toBe(true);
+    const snapshot=await reconnect;
+    expect(snapshot.draft?.choices[rejoined.playerId]).toBe(payload.cardId);expect(snapshot.draft?.deadlineAt).toBe(draft.deadlineAt);expect(snapshot.game).toBeNull();
+    expect((await withAck(players[0]!.socket,'room:leave')).ok).toBe(true);expect(room.players.size).toBe(2);
+    const dealt=nextSnapshot(rejoined.socket);logicalNow+=4000;await dealt;
+    expect(room.game!.players.find(p=>p.id===rejoined.playerId)!.hand[0]!.instanceId).toBe(payload.cardId);
+    expect(room.game!.players.every(p=>p.hand.length===8)).toBe(true);
+  });
+
+  it('rejects forged draft cards, game IDs and late choices before a delayed timer tick',async()=>{
+    const {players,roomCode}=await startRoom(2,false),room=server.rooms.get(roomCode)!,draft=room.draft!;
+    const payload={gameId:draft.gameId,cardId:'card-1',actionId:randomUUID()};
+    expect((await withAck(players[0]!.socket,'room:choose-defuse',payload)).error?.code).toBe('INVALID_DEFUSE_SELECTION');
+    expect((await withAck(players[0]!.socket,'room:choose-defuse',{...payload,gameId:randomUUID()})).error?.code).toBe('DRAFT_FINISHED');
+    logicalNow+=5000;
+    expect((await withAck(players[0]!.socket,'room:choose-defuse',{...payload,cardId:draft.cards[0]!.instanceId})).error?.code).toBe('DRAFT_FINISHED');
+    expect(room.status).toBe('PLAYING');expect(room.draft).toBeNull();
+  });
+
+  it('broadcasts cosmetic throws once without changing engine state, and enforces session cooldown',async()=>{
+    const {players,roomCode}=await startRoom(2),room=server.rooms.get(roomCode)!;
+    const other=await guest('Other room'),watcher=await guest('Watcher');
+    await withAck(other.socket,'room:create');await withAck(watcher.socket,'room:watch',{roomCode});
+    const otherEvents:unknown[]=[],received:any[]=[];other.socket.on('room:event',e=>otherEvents.push(e));players[1]!.socket.on('room:event',e=>received.push(e));
+    const before=structuredClone(room.game),payload={targetId:players[1]!.playerId,prop:'EGG',actionId:randomUUID()};
+    const first=await withAck(players[0]!.socket,'room:throw',payload);
+    expect(first.ok).toBe(true);expect((await withAck(players[0]!.socket,'room:throw',payload))).toEqual(first);
+    expect(received.filter(e=>e.key==='social.thrown')).toHaveLength(1);
+    expect(received.at(-1)?.params).toEqual({sourceId:players[0]!.playerId,sourceName:'Cat 1',targetId:players[1]!.playerId,targetName:'Cat 2',prop:'EGG'});
+    expect(otherEvents).toHaveLength(0);expect(room.game).toEqual(before);
+    const secondSocket=await guest('Cat 1',players[0]!.token);await withAck(secondSocket.socket,'room:join',{roomCode});
+    expect((await withAck(secondSocket.socket,'room:throw',{...payload,prop:'BOMB',actionId:randomUUID()})).error?.code).toBe('REACTION_COOLDOWN');
+    expect((await withAck(watcher.socket,'room:throw',{...payload,sourceId:players[0]!.playerId,actionId:randomUUID()})).error?.code).toBe('BAD_REQUEST');
+    expect((await withAck(watcher.socket,'room:throw',{...payload,prop:'ROCK',actionId:randomUUID()})).ok).toBe(true);
+    logicalNow+=1500;
+    expect((await withAck(secondSocket.socket,'room:throw',{...payload,prop:'BOMB',actionId:randomUUID()})).ok).toBe(true);
+    expect((await withAck(watcher.socket,'room:throw',{...payload,targetId:other.playerId,actionId:randomUUID()})).error?.code).toBe('INVALID_TARGET');
+    expect(room.game).toEqual(before);
+    const restored=nextSnapshot(watcher.socket);await withAck(watcher.socket,'room:sync');
+    expect((await restored).game?.private).toBeNull();
+  });
 
   it('rejects unlisted browser origins for WebSocket and polling handshakes', async () => {
     for (const transport of ['websocket', 'polling']) {

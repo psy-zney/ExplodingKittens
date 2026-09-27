@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LiveEventStream } from '../src/liveEvents.ts';
-import { describeEffects, publicInsertionOf, PUBLIC_INSERT_MS } from '../src/effectDescriptors.ts';
+import { describeEffects, effectSound, publicInsertionOf, PUBLIC_INSERT_MS } from '../src/effectDescriptors.ts';
 import { newActionId } from '../src/actionId.ts';
 
 test('HTTP gateway actions have unique UUIDs without secure-context randomUUID',()=>{
@@ -12,6 +12,22 @@ test('HTTP gateway actions have unique UUIDs without secure-context randomUUID',
 });
 
 const event = (seq, key, params = {}, visibility = 'PUBLIC') => ({ seq, revision: 4, gameId: 'one', key, params, visibility });
+
+test('physical expressions survive private draw and public boom/defuse without exposing another hand',()=>{
+  const events=[event(1,'card.drawn',{playerId:'a'}),event(2,'card.drawn.private',{cardType:'DEFUSE',instanceId:'physical',artVariant:5},'PRIVATE_PLAYER'),event(3,'card.exploded',{playerId:'a',artVariant:3}),event(4,'card.defused',{playerId:'a',artVariant:5}),event(5,'player.eliminated',{playerId:'b'}),event(6,'game.won',{playerId:'a'})];
+  assert.equal(describeEffects(events,'a')[0].card.artVariant,5);
+  assert.equal(describeEffects(events,'b')[0].card,undefined);
+  assert.deepEqual(describeEffects(events).map(e=>e.kind),['draw','explosion','defuse','eliminate','win']);
+  assert.equal(describeEffects(events)[1].card.artVariant,3);
+});
+
+test('functional and social effects have distinct sound cues, and reconnect does not replay throws',()=>{
+  for(const [type,sound] of [['ATTACK','attack'],['FAVOR','favor'],['SKIP','skip'],['SHUFFLE','shuffle'],['SEE_THE_FUTURE','peek'],['AMATEUR_ARCHAEOLOGY','dig'],['BATTLE_HAMSTER','hamster'],['HIP_BAT','bat'],['HIP_CAT','duel'],['PLUS_PLUS','plus'],['ROBIN_HOOD','redeal'],['THE_TWINS','twins'],['RESURRECTION','revive']])assert.equal(effectSound(describeEffects([event(1,'card.played',{cardType:type})])[0]),sound);
+  for(const prop of ['EGG','BOMB','ROCK'])assert.equal(effectSound(describeEffects([event(1,'social.thrown',{prop})])[0]),`throw_${prop.toLowerCase()}`);
+  assert.equal(describeEffects([event(1,'room.started')])[0].kind,'start');
+  const stream=new LiveEventStream(),thrown=event(9,'social.thrown',{prop:'EGG'});
+  stream.hydrate([thrown]);assert.equal(stream.accept(thrown).event,undefined);
+});
 
 test('rapid packet burst preserves every effect; snapshots and retry packets never replay', () => {
   const stream = new LiveEventStream();

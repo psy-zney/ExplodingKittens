@@ -1,3 +1,11 @@
+## Chọn Cứu Nổ 5 giây và hiệu ứng — đang kiểm tra release
+
+Contract đầu RULE_CONTRACT/ARCHITECTURE: DEALING trước PLAYING, sáu Defuse biểu cảm riêng, first accepted pick, đủ 5000 ms, fallback RNG, createGame.defuseChoices giữ lá rồi chia bảy. Socket thêm room:choose-defuse/room:throw. Release này đổi backend, phải full deploy.
+
+84 unit/integration PASS (engine42 gồm 96 ván mô phỏng, server30, web12); đang chạy 14 e2e local. Test mới “five-second rescue draft” kiểm tra mobile ba browser VI/EN, keyboard/touch, draft reconnect/fallback, ba đồ chơi, revision/deadline không đổi, nổ/K.O. qua results. Bilingual Defuse cùng nét nhưng khác biểu cảm vật lý.
+
+Dùng native UTF-8 writes nếu editor patch làm mất sửa khác; kiểm tra server DEALING/handlers và App SocialEffects/InteractionFeedback. Không chạm resume_codex scripts/key secrets. Chạy test/typecheck/build/check:encoding rồi QA. Full deploy lúc không có kết nối backend, giữ .env/Nginx beatsync. Không tuyên bố điện thoại thật 60 FPS hoặc phòng >5 người.
+
 # AGY — tiếp tục Exxplore Kittens
 
 Updated 2026-09-27. Workspace: `C:/Users/admin/MyProject/ExxploreKittens`.

@@ -3,8 +3,9 @@ import { createServer as createHttpServer, type Server as HttpServer } from 'nod
 import express from 'express';
 import { Server, type Socket } from 'socket.io';
 import { z } from 'zod';
-import type { ActionEnvelope } from '@kittens/shared';
+import type { ActionEnvelope, Card } from '@kittens/shared';
 import {
+  makeDeck, shuffle, secureRandom,
   applyAction,
   createGame,
   getPrivateSnapshot,
@@ -26,6 +27,7 @@ interface Session {
   nickname: string;
   roomCode?: string;
   lastSeenAt: number;
+  lastThrowAt?: number;
 }
 
 interface Seat {
@@ -49,7 +51,9 @@ interface VisibleEvent {
 interface Room {
   code: string;
   hostId: string;
-  status: 'LOBBY' | 'PLAYING' | 'FINISHED';
+  status: 'LOBBY' | 'DEALING' | 'PLAYING' | 'FINISHED';
+  draft: null | {gameId:string;deadlineAt:number;cards:Card[];choices:Record<string,string>};
+  socialProcessed:Map<string,Record<string,unknown>>;
   options: RoomOptions;
   players: Map<string, Seat>;
   game: GameState | null;
@@ -278,6 +282,7 @@ export function createGameServer(options: GameServerOptions = {}) {
     }
     return {
       serverNow: now(),
+      draft: room.draft ? structuredClone(room.draft) : null,
       room: publicRoom(room),
       game,
       events: room.events.map((event) => wireEventFor(event, playerId)),
@@ -352,7 +357,7 @@ export function createGameServer(options: GameServerOptions = {}) {
       const raw = args[0];
       const reply = args[1];
       const ack = typeof reply === 'function' ? reply as (ack: Ack) => void : () => undefined;
-      if (!bucket.take(name === 'room:chat' ? 5 : 1, now())) {
+      if (!bucket.take(name === 'room:throw' ? 8 : name === 'room:chat' ? 5 : 1, now())) {
         ack({ ok: false, error: { code: 'RATE_LIMITED' } });
         return;
       }
@@ -418,6 +423,7 @@ export function createGameServer(options: GameServerOptions = {}) {
         code,
         hostId: session.playerId,
         status: 'LOBBY',
+        draft:null, socialProcessed:new Map(),
         options: requestedOptions ?? { mode: 'BASE', resurrection: false },
         players: new Map([[session.playerId, {
           id: session.playerId,
@@ -482,7 +488,7 @@ export function createGameServer(options: GameServerOptions = {}) {
         socket.data.roomCode = undefined;
         socket.data.role = undefined;
         let event: VisibleEvent | undefined;
-        if (wasPlayer && room.status !== 'PLAYING') {
+        if (wasPlayer && room.status !== 'PLAYING' && room.status !== 'DEALING') {
           const seat = room.players.get(session.playerId);
           if (seat) {
             room.players.delete(seat.id);
@@ -532,18 +538,15 @@ export function createGameServer(options: GameServerOptions = {}) {
         if (room.players.size < MIN_PLAYERS || room.players.size > MAX_PLAYERS || [...room.players.values()].some((seat) => !seat.ready || !seat.connected)) {
           fail('NOT_READY');
         }
-        room.game = createGame({
-          gameId: randomUUID(),
-          players: [...room.players.values()].map((seat) => ({ id: seat.id, name: seat.name })),
-          mode: room.options.mode,
-          resurrection: room.options.resurrection,
-          now: now(),
-        });
-        room.status = 'PLAYING';
+        room.draft = {
+          gameId: randomUUID(), deadlineAt: now() + 5000,
+          cards: makeDeck(room.options.mode, room.options.resurrection).filter(card => card.type === 'DEFUSE'),
+          choices: {},
+        };
+        room.status = 'DEALING';
         room.processed.clear();
-        const event = addEvent(room, 'room.started', { gameId: room.game.gameId });
-        publish(room, [event]);
-        return { gameId: room.game.gameId };
+        publish(room, [addEvent(room, 'draft.started', {})]);
+        return { gameId: room.draft.gameId };
       });
     });
 
@@ -554,6 +557,7 @@ export function createGameServer(options: GameServerOptions = {}) {
         if (room.status !== 'FINISHED') fail('GAME_NOT_FINISHED');
         room.status = 'LOBBY';
         room.game = null;
+        room.draft = null;
         room.processed.clear();
         for (const seat of room.players.values()) seat.ready = false;
         const event = addEvent(room, 'room.rematch', {});
@@ -571,6 +575,43 @@ export function createGameServer(options: GameServerOptions = {}) {
         if (room.chatMessages.length > MAX_CHAT_HISTORY) room.chatMessages.shift();
         publish(room, [event]);
         return {};
+      });
+    });
+
+    onEvent(socket, 'room:choose-defuse', async ({ gameId, cardId }) => {
+      const room = roomFor(socket);
+      return queued(room, () => {
+        const seat = seatFor(socket, room);
+        if (!room.draft || room.status !== 'DEALING' || room.draft.gameId !== gameId) fail('DRAFT_FINISHED');
+        if (now() >= room.draft.deadlineAt) { finishDraft(room); fail('DRAFT_FINISHED'); }
+        if (room.draft.choices[seat.id] === cardId) return {};
+        if (room.draft.choices[seat.id]) fail('DEFUSE_ALREADY_CHOSEN');
+        if (!room.draft.cards.some(card => card.instanceId === cardId)) fail('INVALID_DEFUSE_SELECTION');
+        if (Object.values(room.draft.choices).includes(cardId)) fail('DEFUSE_TAKEN');
+        room.draft.choices[seat.id] = cardId;
+        publish(room, [addEvent(room, 'draft.chosen', { playerId: seat.id, cardId })]);
+        return {};
+      });
+    });
+
+    onEvent(socket, 'room:throw', async ({ targetId, prop, actionId }) => {
+      const room = roomFor(socket), session = sessionFor(socket);
+      return queued(room, () => {
+        const key = session.playerId + ':' + actionId, prior = room.socialProcessed.get(key);
+        if (prior) return prior;
+        const target = room.players.get(targetId);
+        if (!target) fail('INVALID_TARGET');
+        if (session.lastThrowAt !== undefined && now() - session.lastThrowAt < 1500) fail('REACTION_COOLDOWN');
+        session.lastThrowAt = now();
+        const event = addEvent(room, 'social.thrown', {
+          sourceId: session.playerId, sourceName: session.nickname,
+          targetId, targetName: target.name, prop,
+        });
+        for (const viewer of socketsIn(room)) viewer.emit('room:event', wireEventFor(event, null));
+        const result = { eventSeq: event.seq };
+        room.socialProcessed.set(key, result);
+        if (room.socialProcessed.size > 256) room.socialProcessed.delete(room.socialProcessed.keys().next().value!);
+        return result;
       });
     });
 
@@ -618,6 +659,21 @@ export function createGameServer(options: GameServerOptions = {}) {
     });
   });
 
+  function finishDraft(room: Room) {
+    if (!room.draft || room.status !== 'DEALING' || now() < room.draft.deadlineAt) return;
+    const draft = room.draft;
+    const claimed = new Set(Object.values(draft.choices));
+    const remaining = shuffle(draft.cards.filter(card => !claimed.has(card.instanceId)), secureRandom);
+    for (const seat of room.players.values()) if (!draft.choices[seat.id]) draft.choices[seat.id] = remaining.shift()!.instanceId;
+    room.game = createGame({
+      gameId: draft.gameId, players: [...room.players.values()].map(seat => ({ id: seat.id, name: seat.name })),
+      mode: room.options.mode, resurrection: room.options.resurrection, now: now(), defuseChoices: draft.choices,
+    });
+    room.draft = null;
+    room.status = 'PLAYING';
+    publish(room, [addEvent(room, 'room.started', { gameId: room.game.gameId })]);
+  }
+
   function resolveExpired(room: Room) {
     if (!room.game || room.status !== 'PLAYING') return;
     const transition = tick(room.game, now());
@@ -630,6 +686,7 @@ export function createGameServer(options: GameServerOptions = {}) {
   const timer = setInterval(() => {
     const currentTime = now();
     for (const room of rooms.values()) {
+      if (room.status === 'DEALING' && room.draft && room.draft.deadlineAt <= currentTime) void queued(room, () => finishDraft(room));
       if (room.status === 'PLAYING' && room.game && (room.game.deadlineAt ?? Infinity) <= currentTime) {
         void queued(room, () => {
           resolveExpired(room);

@@ -59,6 +59,7 @@ export type CreateGameOptions = {
   resurrection?:boolean;
   now?:number;
   rng?:RandomSource;
+  defuseChoices?:Record<string,string>;
 };
 export class GameError extends Error {
   constructor(public readonly code:string) { super(code); this.name='GameError'; }

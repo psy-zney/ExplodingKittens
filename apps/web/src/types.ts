@@ -14,7 +14,7 @@ export type Player = { id: string; name: string; ready?: boolean; connected?: bo
 export type Room = {
   code: string;
   hostId: string;
-  status: 'LOBBY' | 'PLAYING' | 'FINISHED';
+  status: 'LOBBY' | 'DEALING' | 'PLAYING' | 'FINISHED';
   options: { mode: RoomMode; resurrection: boolean };
   players: Player[];
 };
@@ -55,6 +55,7 @@ export type GameEvent = {
   visibility?: string;
 };
 export type ServerSnapshot = {
+  draft?:{gameId:string;deadlineAt:number;cards:Card[];choices:Record<string,string>}|null;
   serverNow?: number;
   room: Room;
   game: null | { public: PublicGame; private: PrivateGame | null };

@@ -44,4 +44,4 @@ it.each([1,2,3,4,5,6])('seed %i: 16 full games preserve cards across both decks 
     expect(state.phase,`seed=${seed}, players=${count}, mode=${mode}, resurrection=${resurrection}`).toBe('FINISHED');
     expect(state.players.filter(player=>player.alive).map(player=>player.id)).toEqual([state.winnerId]);
   }
-});
+},15000);

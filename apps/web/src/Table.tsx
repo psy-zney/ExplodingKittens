@@ -5,7 +5,6 @@ import { inspectPlay } from '@kittens/shared/play-policy';
 import { canSelect, selectCard, secondsRemaining, suggestPlay, type ComposeMode } from './playAssist';
 import { AutoControls, PhaseCoach, PlayModes, QuickGuide, coach } from './PlayCoach';
 import { useAutoPlay } from './useAutoPlay';
-import { GameEffects } from './GameEffects';
 import { PUBLIC_INSERT_MS, publicInsertionOf, type PublicInsertion } from './effectDescriptors';
 import type { ArtStyle, Card, CardType, GameAction, GameEvent, Language, PrivateGame, PublicGame, Room } from './types';
 
@@ -148,12 +147,16 @@ export function Table({ lang, room, game, selfId, liveEvents, busy, action, redu
     if (result) { setSelected([]); setTargetId(''); setLocalMessage(''); }
   }
   const publicInsertion = pub.phase === 'DEFUSE_INSERT' ? null : insertion;
+  const insertionEvent = [...(pub.log ?? [])].reverse().find(event => event.key === 'defuse.inserted');
+  const receipt = insertionEvent && !(pub.log ?? []).some(event => event.seq > insertionEvent.seq && ['card.drawn','card.played'].includes(event.key))
+    ? publicInsertionOf(insertionEvent) : null;
   const scene = pub.phase === 'DEFUSE_INSERT' || publicInsertion;
   const sceneActor = pub.phase === 'DEFUSE_INSERT' && pending?.sourcePlayerId === selfId;
   const sceneName = pub.players.find(player => player.id === (publicInsertion?.playerId ?? pending?.sourcePlayerId))?.name ?? '—';
 
-  return <main className="table-layout"><section className="game-area">
+  return <main className={`table-layout ${pub.players.some(player => player.id === selfId && !player.alive) ? 'is-eliminated' : ''}`}><section className="game-area">
     <div className="table-status"><div><span className="eyebrow">{t(lang, 'room')} {room.code} / {pub.revision}</span><h1 role="status">{ownTurn ? t(lang, 'yourTurn') : t(lang, 'playerTurn', { name: currentName })}</h1>{pub.turnsRemaining > 1 && <span className="debt-label">{t(lang, 'turnDebt', { count: pub.turnsRemaining })}</span>}</div><Countdown seconds={seconds} lang={lang}/></div>
+    {receipt && <div className="insertion-receipt" role="status" data-public-insertion={receipt.zone}>{t(lang,receipt.zone==='TOP'?'insertTopPublic':receipt.zone==='BOTTOM'?'insertBottomPublic':'insertMiddlePublic')}</div>}
     <PhaseCoach lang={lang} game={pub} selfId={isSpectator ? undefined : selfId} seconds={seconds}/><div className="opponents-row">{opponents.map((player, index) => <Avatar key={player.id} playerId={player.id} lang={lang} name={player.name} count={player.handCount ?? 0} alive={!!player.alive} active={pub.currentPlayerId === player.id} connected={room.players.find(item => item.id === player.id)?.connected ?? false} self={false} style={(['pen', 'stamp', 'pixel', 'geometry'] as ArtStyle[])[index % 4]!} index={index}/>)}</div>
     <div className="table-felt"><div className="table-deck-zone"><div data-deck className="deck-holder"><CardBack count={pub.drawCount} label={t(lang, 'deck')}/><span>{t(lang, 'deck')}</span></div><div data-discard className="discard-holder">{discardTop ? <CardView card={discardTop} lang={lang} compact/> : <div className="empty-discard">∅</div>}<span>{t(lang, 'discard')}</span></div></div>
       {!scene && <div className="table-message" aria-live="polite">{pub.phase === 'NOPE_WINDOW' ? t(lang, 'nopeWindow') : pub.phase === 'TURN' ? t(lang, 'drawHint') : pub.phase === 'FINISHED' ? t(lang, 'results') : t(lang, 'waiting')}</div>}
@@ -174,6 +177,6 @@ export function Table({ lang, room, game, selfId, liveEvents, busy, action, redu
     </div>
     <PrivateInsight lang={lang} future={mine?.privateData.futureCards} peek={mine?.privateData.peekHand} players={pub.players}/>
     {scene && <InsertScene key={publicInsertion?.seq ?? pub.turnId} lang={lang} name={sceneName} own={!!sceneActor} slotCount={sceneActor ? mine?.privateData.insertSlotCount : undefined} action={action} busy={!activeControls} zone={publicInsertion?.zone} reduced={reduced}/>}
-    <GameEffects events={liveEvents} gameId={pub.gameId} selfId={selfId} lang={lang} players={pub.players} reduced={reduced}/>
+    {pub.players.some(player => player.id === selfId && !player.alive) && <div className="dead-player-note"><strong>{t(lang, 'fx.eliminated')}</strong><span>{t(lang, 'fx.deadHint')}</span></div>}
   </section></main>;
 }

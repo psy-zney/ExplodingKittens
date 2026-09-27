@@ -203,6 +203,12 @@ export function useGameConnection() {
     rematch: () => request('room:rematch', {}),
     settings: (options: { mode: RoomMode; resurrection: boolean }) => request('room:settings', { options }),
     chat: (text: string) => request('room:chat', { text: text.trim().slice(0, 240) }),
-    gameAction
+    gameAction,
+    chooseDefuse:(gameId:string,cardId:string)=>request('room:choose-defuse',{gameId,cardId,actionId:newActionId()}),
+    throwProp:async(targetId:string,prop:'EGG'|'BOMB'|'ROCK')=>{
+      const socket=socketRef.current;
+      if(!socket?.connected||!sessionRef.current)return {ok:false as const,error:{code:'CONNECTION'}};
+      return emitAck<Record<string,unknown>>(socket,'room:throw',{targetId,prop,actionId:newActionId()});
+    }
   };
 }

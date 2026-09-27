@@ -38,7 +38,7 @@ const art = {
   geometry: lazy(() => import('./art/GeometryCat')),
 };
 
-export function CardView({ card, lang, selected, onClick, disabled, compact = false, className = '', hint, selectable }: {
+export function CardView({ card, lang, selected, onClick, disabled, compact = false, className = '', hint, selectable, ariaLabel }: {
   card: Card;
   lang: Language;
   selected?: boolean;
@@ -48,6 +48,7 @@ export function CardView({ card, lang, selected, onClick, disabled, compact = fa
   className?: string;
   hint?: string;
   selectable?: boolean;
+  ariaLabel?: string;
 }) {
   const style = CARD_ART_STYLES[card.type];
   const Art = art[style];
@@ -62,7 +63,7 @@ export function CardView({ card, lang, selected, onClick, disabled, compact = fa
     {hint && <span className="card-hint">{hint}</span>}
   </>;
   const classes = `playing-card style-${style} tone-${visual.tone} ${card.type === 'EXPLODING_KITTEN' ? 'is-danger' : ''} ${selected ? 'is-selected' : ''} ${compact ? 'is-compact' : ''} ${selectable ? 'is-playable' : ''} ${hint ? 'is-suggested' : ''} ${className}`;
-  const accessibleLabel = `${title}. ${category}. ${cardDescription(lang, card.type)}${hint ? `. ${hint}` : ''}${selectable ? lang === 'vi' ? '. Có thể chọn.' : '. Selectable.' : ''}`;
+  const accessibleLabel = `${ariaLabel ? `${ariaLabel}. ` : ''}${title}. ${category}. ${cardDescription(lang, card.type)}${hint ? `. ${hint}` : ''}${selectable ? lang === 'vi' ? '. Có thể chọn.' : '. Selectable.' : ''}`;
   return onClick ? <button type="button" className={classes} data-art-style={style} data-card-type={card.type} data-art-variant={card.artVariant??0} onClick={onClick} disabled={disabled} aria-pressed={!!selected} aria-label={accessibleLabel}>{content}</button>
     : <div className={classes} data-art-style={style} data-card-type={card.type} data-art-variant={card.artVariant??0} role="img" aria-label={accessibleLabel}>{content}</div>;
 }

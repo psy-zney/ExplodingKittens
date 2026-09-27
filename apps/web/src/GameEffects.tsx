@@ -4,6 +4,8 @@ import { describeEffects, type GameEffect } from './effectDescriptors';
 import { eventText } from './eventText';
 import type { GameEvent, Language, Player } from './types';
 import './gameEffects.css';
+import { ActionSticker } from './FunProps';
+import { t } from './i18n';
 
 type Point = { x: number; y: number };
 type Flight = { from: Point; to: Point };
@@ -25,7 +27,7 @@ export function GameEffects({ events, gameId, selfId, lang, players, reduced }: 
 
   useEffect(() => {
     if (!events.length || document.hidden) { seen.current.clear(); setQueue([]); return; }
-    const effects = describeEffects(events.filter(event => event.gameId === gameId), selfId);
+    const effects = describeEffects(events.filter(event => event.gameId === gameId), selfId).filter(effect => effect.kind !== 'toss');
     const fresh = effects.filter(effect => !seen.current.has(effect.id));
     for (const effect of fresh) seen.current.add(effect.id);
     if (fresh.length) setQueue(previous => [...previous, ...fresh].slice(-8));
@@ -37,7 +39,7 @@ export function GameEffects({ events, gameId, selfId, lang, players, reduced }: 
     const area = layer.current?.parentElement;
     if (!area) return;
     const bounds = area.getBoundingClientRect();
-    const center = { x: bounds.width / 2, y: bounds.height * 0.42 };
+    const center = point(area.querySelector('[data-deck]'), bounds, { x: bounds.width / 2, y: bounds.height * 0.42 });
     const seat = (id?: string) => id === selfId ? area.querySelector('[data-hand]')
       : [...area.querySelectorAll('[data-player-id]')].find(element => element.getAttribute('data-player-id') === id) ?? null;
     const deck = area.querySelector('[data-deck]');
@@ -89,8 +91,12 @@ export function GameEffects({ events, gameId, selfId, lang, players, reduced }: 
       {flying && flight && <div className="effect-flight"><div className={`effect-flip ${active.card ? 'has-face' : ''} ${active.kind === 'play' || active.kind === 'attack' ? 'face-up' : ''}`}>
         <div className="effect-card-back"><CardBack/></div>{active.card && <div className="effect-card-front"><CardView card={active.card} lang={lang} compact/></div>}
       </div></div>}
-      {active.kind === 'nope' && <div className="effect-nope">{lang === 'vi' ? 'KHÔNG' : 'NOPE'}</div>}
-      {(active.kind === 'explosion' || active.kind === 'defuse') && <div className="effect-cat-scene"><div className="effect-cat">⌃ ◡ ⌃</div><span className="effect-puff">{active.kind === 'explosion' ? (lang === 'vi' ? 'bụp.' : 'pop.') : (lang === 'vi' ? 'xì.' : 'pfft.')}</span></div>}
+      {active.kind === 'nope' && <div className="nope-stopper">{lang === 'vi' ? 'KHÔNG' : 'NOPE'}</div>}
+      {active.kind === 'play' && active.card && <ActionSticker type={active.card.type} lang={lang}/>}
+      {(active.kind === 'explosion' || active.kind === 'defuse') && <div className="effect-cat-scene"><span className="comic-burst"/><div className="effect-cat">{active.card && <CardView card={active.card} lang={lang} compact/>}</div><span className="comic-letter">{active.kind === 'explosion' ? 'BOOM!' : 'PFFT…'}</span><span className="effect-puff">{t(lang, active.kind === 'explosion' ? 'fx.boom' : 'fx.defuse')}</span></div>}
+      {active.kind === 'eliminate' && <div className={`elimination-scene ${active.playerId === selfId ? 'is-self' : ''}`} data-eliminated-effect={active.playerId}><span className="ko-cat">× ω ×</span><strong>K.O.</strong><p>{t(lang, 'fx.eliminated')}</p></div>}
+      {active.kind === 'start' && <div className="deal-scene">{Array.from({length:7},(_,i)=><div key={i} className="deal-fan-card" style={{'--fan-index':i} as CSSProperties}><CardBack/></div>)}<strong>{t(lang, 'fx.start')}</strong></div>}
+      {active.kind === 'win' && <div className="winner-sticker"><span>♛</span><strong>{t(lang, 'fx.win')}</strong></div>}
       {active.kind === 'peek' && <div className="effect-peek">⌕</div>}
       {active.kind === 'revive' && <div className="effect-revive">⌃ ◡ ⌃</div>}
       <div className="effect-caption">{eventText(lang, active.event, players)}</div>

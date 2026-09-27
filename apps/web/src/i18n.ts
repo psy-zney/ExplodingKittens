@@ -1,4 +1,5 @@
 import type { CardType, Language } from './types';
+import { playfulEn, playfulVi } from './playfulCopy';
 
 type Copy = Record<string, string>;
 
@@ -220,7 +221,7 @@ const vi: Copy = {
   'rule.detail.THE_TWINS': 'Trong lượt của mình, không cần mục tiêu. Sau một cửa sổ Nope, mỗi đối thủ còn sống đưa tất cả cặp hoàn chỉnh: ba bản đưa hai, bốn bản đưa bốn. Công khai người đưa và số lá, không lộ loại hay ID bí mật. Không có cặp thì không chuyển. Máy chủ vẫn xử lý khi có người mất kết nối.',
 };
 
-const dictionaries: Record<Language, Copy> = { en, vi };
+const dictionaries: Record<Language, Copy> = { en: { ...en, ...playfulEn }, vi: { ...vi, ...playfulVi } };
 
 export function t(lang: Language, key: string, params: Record<string, unknown> = {}): string {
   const template = dictionaries[lang][key] ?? dictionaries.en[key] ?? key;
@@ -264,4 +265,3 @@ export function cardDescription(lang: Language, type: CardType | string): string
 
 export const CARD_TYPES = Object.keys(cards) as CardType[];
 export const EXPANSION_TYPES: CardType[] = ['AMATEUR_ARCHAEOLOGY', 'BATTLE_HAMSTER', 'CREEPY_PEEKY', 'HIP_BAT', 'HIP_CAT', 'PLUS_PLUS', 'ROBIN_HOOD', 'THE_TWINS'];
-

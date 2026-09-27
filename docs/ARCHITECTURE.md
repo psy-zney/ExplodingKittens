@@ -1,3 +1,15 @@
+## Draft mở ván và đồ chơi — 2026-09-27
+
+- room:start trả gameId draft và chuyển DEALING, chưa tạo tay bài.
+- room:choose-defuse: {gameId,cardId,actionId}. Schema strict; server kiểm tra ghế, game, deadline, instanceId, chủ lá/lựa chọn trước đó trong queue.
+- room:snapshot.draft: {gameId,deadlineAt,cards,choices} hoặc null. Cards chỉ gồm sáu Defuse công khai; game:null suốt năm giây.
+- finishDraft chốt deadline: RNG xáo lá còn trống, cấp người chưa chọn, createGame.defuseChoices giữ đúng lá, chia thêm bảy lá. room.started chỉ phát sau chia.
+- draft.started và draft.chosen public; client dịch key theo VI/EN.
+- room:throw: {targetId,prop:'EGG'|'BOMB'|'ROCK',actionId}. Server lấy danh tính từ session, kiểm tra ghế target. Cooldown 1500 ms/session, token bucket cost 8, cache 256 retry/phòng.
+- social.thrown public: {sourceId,sourceName,targetId,targetName,prop}. Không gọi engine/đổi revision/deadline hoặc gửi snapshot cho từng lần ném. Room sequence tăng; LiveEventStream nhận/gap/reconnect như sự kiện game. Tọa độ chỉ tính tại browser.
+- Card.artVariant ổn định. Mặt/variant bài rút và nhận chỉ gửi riêng; Boom/Defuse đã lật được công khai. Descriptor không dùng vị trí chèn giữa.
+- GameEffects ở room shell, tồn tại qua results; queue nổ/loại/thắng cuối ván. Social queue tối đa 4/game queue 8, tab ẩn và reconnect bỏ hoạt ảnh cũ. CSS/WAAPI transform/opacity, reduced motion.
+
 # Kiến trúc và giao thức
 
 ## Ranh giới dữ liệu
@@ -9,7 +21,8 @@ The server is authoritative. A browser never receives the draw order, another pl
 ```mermaid
 stateDiagram-v2
     [*] --> LOBBY
-    LOBBY --> TURN: host starts 2–5 ready players
+    LOBBY --> DEALING: host starts 2–5 ready players
+    DEALING --> TURN: 5s draft ends, server deals
     TURN --> NOPE_WINDOW: valid action played
     NOPE_WINDOW --> TURN: cancelled / immediate action resolves
     NOPE_WINDOW --> FAVOR_CHOICE: Favor resolves

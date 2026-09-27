@@ -5,8 +5,8 @@ export function eventText(lang: Language, event: GameEvent, players: Player[]): 
   const p = event.params ?? {};
   const name = (id: unknown) => players.find(player => player.id === id)?.name ?? String(id ?? '');
   const playerName = String(p.playerName ?? name(p.playerId));
-  const targetName = name(p.targetId);
-  const sourceName = name(p.sourceId);
+  const targetName = String(p.targetName ?? name(p.targetId));
+  const sourceName = String(p.sourceName ?? name(p.sourceId));
   const cardType = typeof p.cardType === 'string' ? cardName(lang, p.cardType) : '';
   const args: Record<string, unknown> = { ...p, playerName, targetName, sourceName, cardType };
   const keys: Record<string, string> = {
@@ -24,6 +24,9 @@ export function eventText(lang: Language, event: GameEvent, players: Player[]): 
     'deck.shuffled': 'event.shuffled', 'player.resurrected': 'event.resurrected',
   };
   if (event.key === 'turn.started') return t(lang, 'playerTurn', { name: playerName });
+  if (event.key === 'social.thrown') return t(lang,'social.thrown',{sourceName,targetName,propName:t(lang,`social.${String(p.prop)}`)});
+  if (event.key === 'draft.started') return t(lang,'draft.title');
+  if (event.key === 'draft.chosen') return `${playerName} · ${t(lang,'draft.confirmed')}`;
   if (event.key === 'event.hidden') return '';
   if (event.key === 'room.ready' && p.ready === false) return t(lang, 'event.unready', { playerName });
   if (event.key === 'player.resurrected') return t(lang, 'event.resurrected', { playerName: name(p.byPlayerId), targetName: playerName });

@@ -1,10 +1,18 @@
+## Chọn mèo và hiệu ứng vui
+
+Bấm Bắt đầu mở sáu lá Cứu Nổ có biểu cảm riêng, đếm ngược **5 giây**. Chạm/bàn phím chọn một lá trống. Hết giờ server tự cấp lá cho người chưa chọn rồi mới chia thêm bảy lá. Refresh giữ lựa chọn. Quy tắc ứng dụng công khai trong Luật phòng và [rule contract](docs/RULE_CONTRACT.md).
+
+Bốn lá Mèo Nổ có biểu cảm riêng. Có thanh chọn người để ném trứng/bom đồ chơi/đá nhỏ đồng bộ phòng, không đổi luật. Nút/chọn bài có phản hồi và SFX; chức năng có sticker, nổ/Defuse có cảnh riêng, bị loại xám/K.O., chia bài và thắng có hoạt ảnh. Results giữ hiệu ứng cuối ván. Mute, reduced motion và phụ đề được giữ.
+
+SVG/sticker của cập nhật là đồ họa gốc. Audio dùng WebAudio và các tệp meme có sẵn trong public/audio; mẫu phát giới hạn theo từng hiệu ứng (0,8–3,5 giây), qua Master/Music/SFX/Mute và ducking. Asset dùng BASE_URL cho /kittens/. Không mô tả gói âm thanh meme là âm thanh gốc.
+
 # Exxplore Kittens / Mèo Nổ online
 
 Game bài nhiều người chơi theo thời gian thực, 2–5 người mỗi phòng, không cần tài khoản. Mỗi trình duyệt tự chọn Tiếng Việt/English, âm lượng và mức chuyển động. Cả bốn nét vẽ cùng xuất hiện trong một bộ bài; mỗi loại lá có minh họa cố định cho mọi người. Mã phòng và liên kết mời đưa bạn bè vào cùng một ván.
 
 **Chơi ngay:** [Game production trên VPS](https://beatsync-server.zney295.id.vn/kittens/). Nginx trên `vps-cong` phục vụ tại `http://localhost:9000/kittens/`; HTTP trực tiếp tại [cổng 9000](http://149.118.50.176:9000/kittens/). Backend chỉ bind `127.0.0.1:3105`, qua proxy `/kittens/socket.io/`. Ván 2–5 người đã được kiểm tra bằng nhiều Chromium thật trên URL production.
 
-Các nét bút bi, giấy đóng dấu, pixel và hình học là SVG/CSS nguyên bản. Không dùng artwork, âm thanh hoặc hình minh họa thương mại. Bộ 56 lá và lượt cơ bản tham khảo [hướng dẫn Original Edition](https://www.explodingkittens.com/pages/rules-kittens) và [field guide chính thức](https://www.explodingkittens.com/pages/comprehensive-field-guide). Tám lá thêm và Hồi Sinh là **quy tắc mở rộng của ứng dụng**, được ghi cụ thể trong [rule contract](docs/RULE_CONTRACT.md) và bảng luật ở lobby; không được trình bày như luật gốc.
+Các nét bút bi, giấy đóng dấu, pixel và hình học là SVG/CSS nguyên bản. Không sao chép artwork hoặc hình minh họa từ bộ bài thương mại. Bộ 56 lá và lượt cơ bản tham khảo [hướng dẫn Original Edition](https://www.explodingkittens.com/pages/rules-kittens) và [field guide chính thức](https://www.explodingkittens.com/pages/comprehensive-field-guide). Tám lá thêm và Hồi Sinh là **quy tắc mở rộng của ứng dụng**, được ghi cụ thể trong [rule contract](docs/RULE_CONTRACT.md) và bảng luật ở lobby; không được trình bày như luật gốc.
 
 ## Bộ bài minh họa chung
 

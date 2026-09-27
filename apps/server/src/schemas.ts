@@ -19,6 +19,8 @@ export const inboundSchemas = {
   'room:start': z.object({}).strict(),
   'room:rematch': z.object({}).strict(),
   'room:chat': z.object({ text: z.string().trim().min(1).max(240) }).strict(),
+  'room:choose-defuse': z.object({ gameId: z.string().uuid(), cardId: z.string().min(1).max(80), actionId: z.string().uuid() }).strict(),
+  'room:throw': z.object({ targetId: z.string().uuid(), prop: z.enum(['EGG','BOMB','ROCK']), actionId: z.string().uuid() }).strict(),
   'room:sync': z.object({}).strict(),
   'game:action': actionEnvelopeSchema,
 } as const;

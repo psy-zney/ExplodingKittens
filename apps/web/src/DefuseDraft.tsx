@@ -1,0 +1,11 @@
+import { useEffect, useState, type CSSProperties } from 'react';
+import { CardView } from './CardView';
+import { t } from './i18n';
+import type { Language, Player, ServerSnapshot } from './types';
+export function DefuseDraft({ draft, lang, selfId, players, busy, online, offset, choose }: { draft: NonNullable<ServerSnapshot['draft']>; lang: Language; selfId?: string; players: Player[]; busy: boolean; online: boolean; offset: number; choose: (gameId:string,cardId:string)=>Promise<unknown> }) {
+ const [now,setNow]=useState(Date.now());
+ useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),100);return()=>window.clearInterval(timer);},[]);
+ const remaining=Math.max(0,draft.deadlineAt-now-offset),selected=selfId?draft.choices[selfId]:undefined,isPlayer=players.some(p=>p.id===selfId);
+ return <main className="defuse-draft" aria-labelledby="draft-title"><span className="eyebrow">{t(lang,'draft.house')}</span><h1 id="draft-title">{t(lang,'draft.title')}</h1><p>{t(lang,'draft.hint')}</p><div className="draft-clock" role="timer" aria-label={t(lang,'draft.seconds',{n:Math.ceil(remaining/1000)})}><strong>{(remaining/1000).toFixed(1)}s</strong><span className="draft-progress"><i style={{transform:`scaleX(${remaining/5000})`}}/></span></div><div className="draft-cards" role="group" aria-label={t(lang,'draft.choose')}>
+ {draft.cards.map((card,index)=>{const owner=Object.entries(draft.choices).find(([,id])=>id===card.instanceId)?.[0],name=players.find(p=>p.id===owner)?.name;return <div data-draft-card-id={card.instanceId} className={`draft-card ${owner?'is-taken':''} ${selected===card.instanceId?'is-mine':''}`} key={card.instanceId} style={{'--deal-index':index} as CSSProperties}><CardView card={card} lang={lang} ariaLabel={t(lang,'draft.face',{n:index+1})} selected={selected===card.instanceId} disabled={!isPlayer||!!selected||!!owner||busy||!online||remaining===0} onClick={()=>void choose(draft.gameId,card.instanceId)}/><span className="draft-card-owner">{owner?`${selected===card.instanceId?'✓ ':''}${name??'—'}`:t(lang,'draft.face',{n:index+1})}</span></div>;})}</div><p className="draft-status" role="status">{t(lang,selected?'draft.confirmed':isPlayer?'draft.waiting':'draft.watching')}</p></main>;
+}

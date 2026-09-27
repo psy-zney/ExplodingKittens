@@ -110,7 +110,7 @@ function draw(state:GameState,now:number,rng:RandomSource,events:GameEvent[]) {
   if(card.type!=='EXPLODING_KITTEN'){
     player.hand.push(card);
     emit(state,events,'card.drawn',{playerId:player.id});
-    emit(state,events,'card.drawn.private',{cardType:card.type,instanceId:card.instanceId},'PRIVATE_PLAYER',player.id);
+    emit(state,events,'card.drawn.private',{cardType:card.type,instanceId:card.instanceId,artVariant:card.artVariant??0},'PRIVATE_PLAYER',player.id);
     advanceTurn(state,now,events);
     return;
   }
@@ -179,7 +179,7 @@ function takeDiscard(state:GameState,cardId:string,now:number,rng:RandomSource,e
 function transfer(state:GameState,sourceId:string,targetId:string,card:Card,events:GameEvent[],key:string) {
   person(state,targetId).hand.push(card);
   emit(state,events,key,{sourceId,targetId,count:1});
-  emit(state,events,'card.received',{cardType:card.type,instanceId:card.instanceId},'PRIVATE_PLAYER',targetId);
+  emit(state,events,'card.received',{cardType:card.type,instanceId:card.instanceId,artVariant:card.artVariant??0},'PRIVATE_PLAYER',targetId);
 }
 function resolveIntent(state:GameState,intent:PlayIntent,now:number,rng:RandomSource,events:GameEvent[]) {
   const actor=person(state,intent.sourcePlayerId);
@@ -346,7 +346,10 @@ export function createGame(options:CreateGameOptions):GameState {
   const kittens=all.filter(card=>card.type==='EXPLODING_KITTEN');
   const defuses=all.filter(card=>card.type==='DEFUSE');
   const nonSpecial=shuffle(all.filter(card=>card.type!=='EXPLODING_KITTEN'&&card.type!=='DEFUSE'&&card.type!=='RESURRECTION'),rng);
-  const statePlayers=players.map(seed=>({id:seed.id,name:seed.name,hand:[defuses.shift()!,...nonSpecial.splice(0,7)],alive:true,eliminatedKitten:null,bats:[],reviveAvailableCircuit:0}));
+  const choices=options.defuseChoices??{},requested=Object.values(choices);
+  if(new Set(requested).size!==requested.length||Object.keys(choices).some(id=>!players.some(p=>p.id===id))||requested.some(id=>!defuses.some(c=>c.instanceId===id)))return fail('INVALID_DEFUSE_SELECTION');
+  const selected=players.map(seed=>{const id=choices[seed.id];const index=id?defuses.findIndex(c=>c.instanceId===id):defuses.findIndex(c=>!requested.includes(c.instanceId));if(index<0)return fail('INVALID_DEFUSE_SELECTION');return defuses.splice(index,1)[0]!;});
+  const statePlayers=players.map((seed,i)=>({id:seed.id,name:seed.name,hand:[selected[i]!,...nonSpecial.splice(0,7)],alive:true,eliminatedKitten:null,bats:[],reviveAvailableCircuit:0}));
   const extraDefuses=defuses.splice(0,Math.min(players.length>=5?1:2,defuses.length));
   const activeKittens=kittens.splice(0,players.length-1);
   const resurrectionCards=all.filter(card=>card.type==='RESURRECTION');

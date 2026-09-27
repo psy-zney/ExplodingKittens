@@ -177,7 +177,7 @@ async function finishByDrawing(clients: Client[], options: { spectator?: Client;
       const event = observer.incoming.slice(receivedBefore).find(p => p[0] === 'room:event' && p[1].key === 'defuse.inserted')[1];
       expect(event.params.zone).toBe(zone);
       expect(Object.keys(event.params).sort()).toEqual(['playerId', 'zone']);
-      await expect(observer.page.locator(`.zone-${zone.toLowerCase()}`)).toBeVisible();
+      await expect(observer.page.locator('[data-public-insertion="' + zone + '"]')).toBeVisible();
       if (zone === 'MIDDLE_HIDDEN') {
         expect(JSON.stringify(event)).not.toMatch(/"(index|slot|slotIndex|position|pointerX|pointerY|dragProgress|duration)"/);
         const observerLog = observer.snapshot.events.filter((e: any) => e.key === 'defuse.inserted').at(-1);
@@ -251,6 +251,69 @@ test('illustrated deck: all four styles together, no style selectors, readable c
     results.push({ test: 'mixed-illustrated-deck', mobile, styles, galleryTypes: 22, legacyPreferenceIgnored: true, fit });
     await c.context.close();
   }
+});
+
+test('five-second rescue draft: distinct cats, touch and keyboard picks, reconnect, fallback, toys and final K.O.', async ({browser}) => {
+  await mkdir(path.join(artifacts,'screenshots'),{recursive:true});
+  const {clients,host}=await lobby(browser,3,true),peer=clients[1]!;
+  for(const c of clients)await c.page.getByRole('button',{name:c.lang==='vi'?'Tôi sẵn sàng':'I’m ready',exact:true}).click();
+  await host.page.getByRole('button',{name:/Bắt đầu ván/}).click();
+  await Promise.all(clients.map(c=>expect(c.page.locator('.defuse-draft')).toBeVisible()));
+  await expect(host.page.locator('#draft-title')).toHaveText('Chọn mèo cứu mạng');
+  await expect(peer.page.locator('#draft-title')).toHaveText('Pick your rescue cat');
+  expect(clients.every(c=>c.snapshot.game===null)).toBe(true);
+  await expect(host.page.locator('.draft-cards .cat-expression')).toHaveCount(6);
+  const expressions=await host.page.locator('.draft-cards .cat-expression').evaluateAll(nodes=>nodes.map(node=>node.innerHTML));
+  expect(new Set(expressions).size).toBe(6);
+  expect(new Set(host.snapshot.draft.cards.map((c:any)=>c.artVariant)).size).toBe(6);
+  const draftId=host.snapshot.draft.gameId,deadline=host.snapshot.draft.deadlineAt;
+  const selected=host.snapshot.draft.cards[0],second=host.snapshot.draft.cards[1];
+  const firstButton=host.page.locator(`[data-draft-card-id="${selected.instanceId}"] button`);
+  await firstButton.focus();await firstButton.press('Enter');
+  await expect(host.page.locator('.draft-card.is-mine .draft-card-owner')).toContainText(host.name);
+  await expect(peer.page.locator(`[data-draft-card-id="${selected.instanceId}"] button`)).toBeDisabled();
+  await peer.page.locator(`[data-draft-card-id="${second.instanceId}"] button`).tap();
+  await expect(peer.page.locator('.draft-status')).toContainText('Your cat is locked');
+  for(const card of await peer.page.locator('.draft-cards .playing-card').all()){
+    const box=(await card.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(390);expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  await host.page.screenshot({path:path.join(artifacts,'screenshots/defuse-draft-mobile.png'),fullPage:true});
+  await host.page.reload();
+  await expect(host.page.locator('.defuse-draft')).toBeVisible();
+  expect(host.snapshot.draft.gameId).toBe(draftId);expect(host.snapshot.draft.deadlineAt).toBe(deadline);
+  await expect(host.page.locator('.draft-card.is-mine .draft-card-owner')).toContainText(host.name);
+  await Promise.all(clients.map(c=>expect(c.page.locator('.table-layout')).toBeVisible()));
+  expect(host.snapshot.game.public.gameId).toBe(draftId);
+  expect(host.snapshot.game.private.hand[0].instanceId).toBe(selected.instanceId);
+  expect(peer.snapshot.game.private.hand[0].instanceId).toBe(second.instanceId);
+  expect(clients.every(c=>c.snapshot.game.private.hand.length===8)).toBe(true);
+  expect(new Set(clients.map(c=>c.snapshot.game.private.hand[0].instanceId)).size).toBe(3);
+  await beginFrames(host.page);
+  const target=peer.snapshot.room.players.find((p:any)=>p.name===peer.name).id;
+  await host.page.locator('.social-target select').selectOption(target);
+  const revision=host.snapshot.game.public.revision,turnDeadline=host.snapshot.game.public.deadlineAt;
+  for(const prop of ['EGG','BOMB','ROCK']){
+    const button=host.page.locator(`[data-throw-prop="${prop}"]`);await expect(button).toBeEnabled();await button.tap();
+    await Promise.all(clients.map(c=>expect(c.page.locator(`[data-social-effect="${prop}"]`)).toBeVisible()));
+    if(prop==='EGG')await peer.page.screenshot({path:path.join(artifacts,'screenshots/egg-impact-mobile.png'),fullPage:true});
+    const events=clients.map(c=>c.incoming.filter(p=>p[0]==='room:event'&&p[1].key==='social.thrown').at(-1)[1]);
+    events.forEach(e=>expect(e.params).toEqual(events[0].params));
+    expect(Object.keys(events[0].params).sort()).toEqual(['prop','sourceId','sourceName','targetId','targetName']);
+    expect(host.snapshot.game.public.revision).toBe(revision);expect(host.snapshot.game.public.deadlineAt).toBe(turnDeadline);
+  }
+  const thrown=host.outgoing.filter(p=>p[0]==='room:throw');expect(thrown).toHaveLength(3);
+  thrown.forEach(p=>expect(Object.keys(p[1]).sort()).toEqual(['actionId','prop','targetId']));
+  await expect(host.page.locator('.history-details')).toContainText('ném Đá nhỏ');
+  await expect(peer.page.locator('.history-details')).toContainText('threw a Pebble');
+  const outcome=await finishByDrawing(clients);
+  await expect(host.page.locator('[data-effect-kind=explosion]')).toBeVisible();
+  await host.page.screenshot({path:path.join(artifacts,'screenshots/final-boom.png'),fullPage:true});
+  await expect(host.page.locator('[data-eliminated-effect]')).toBeVisible();
+  await host.page.screenshot({path:path.join(artifacts,'screenshots/final-ko.png'),fullPage:true});
+  await expect(host.page.locator('[data-effect-kind=win]')).toBeVisible();
+  results.push({scenario:'five-second draft and playful effects',outcome,frames:await frameResults(host.page)});
+  expect(clients.flatMap(c=>c.errors)).toEqual([]);
+  for(const c of clients)await c.context.close();
 });
 
 test('room chat: VI/EN messages, unread badge, safe text, reconnect, full game and rematch', async ({ browser }) => {
@@ -390,7 +453,8 @@ test('two independent guests: VI/EN, mixed illustrations, audio, private insert,
   const hostDefuse = host.page.locator('.hand-card[data-card-type=DEFUSE]').first();
   const peerDefuse = second.page.locator('.hand-card[data-card-type=DEFUSE]').first();
   expect(await hostDefuse.getAttribute('data-art-style')).toBe(await peerDefuse.getAttribute('data-art-style'));
-  expect(await hostDefuse.locator('.scene-art').innerHTML()).toBe(await peerDefuse.locator('.scene-art').innerHTML());
+  expect(await hostDefuse.getAttribute('data-art-variant')).not.toBe(await peerDefuse.getAttribute('data-art-variant'));
+  expect(await hostDefuse.locator('.scene-art').innerHTML()).not.toBe(await peerDefuse.locator('.scene-art').innerHTML());
   await expect(host.page.locator('.hand-scroll .cat-art-svg')).toHaveCount(8);
   await expect(second.page.locator('.hand-scroll .cat-art-svg')).toHaveCount(8);
   for (const c of [host, second]) {
