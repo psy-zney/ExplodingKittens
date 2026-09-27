@@ -1,10 +1,16 @@
 # Exxplore Kittens / Mèo Nổ online
 
-Game bài nhiều người chơi theo thời gian thực, 2–5 người mỗi phòng, không cần tài khoản. Mỗi trình duyệt tự chọn Tiếng Việt/English, một trong bốn nét mèo gốc, âm lượng và mức chuyển động. Mã phòng và liên kết mời đưa bạn bè vào cùng một ván.
+Game bài nhiều người chơi theo thời gian thực, 2–5 người mỗi phòng, không cần tài khoản. Mỗi trình duyệt tự chọn Tiếng Việt/English, âm lượng và mức chuyển động. Cả bốn nét vẽ cùng xuất hiện trong một bộ bài; mỗi loại lá có minh họa cố định cho mọi người. Mã phòng và liên kết mời đưa bạn bè vào cùng một ván.
 
 **Chơi ngay:** [Game production trên VPS](https://beatsync-server.zney295.id.vn/kittens/). Nginx trên `vps-cong` phục vụ tại `http://localhost:9000/kittens/`; HTTP trực tiếp tại [cổng 9000](http://149.118.50.176:9000/kittens/). Backend chỉ bind `127.0.0.1:3105`, qua proxy `/kittens/socket.io/`. Ván 2–5 người đã được kiểm tra bằng nhiều Chromium thật trên URL production.
 
 Các nét bút bi, giấy đóng dấu, pixel và hình học là SVG/CSS nguyên bản. Không dùng artwork, âm thanh hoặc hình minh họa thương mại. Bộ 56 lá và lượt cơ bản tham khảo [hướng dẫn Original Edition](https://www.explodingkittens.com/pages/rules-kittens) và [field guide chính thức](https://www.explodingkittens.com/pages/comprehensive-field-guide). Tám lá thêm và Hồi Sinh là **quy tắc mở rộng của ứng dụng**, được ghi cụ thể trong [rule contract](docs/RULE_CONTRACT.md) và bảng luật ở lobby; không được trình bày như luật gốc.
+
+## Bộ bài minh họa chung
+
+Bốn nét bút bi, đóng dấu, pixel và hình học được phối chung theo loại bài, không còn chọn style riêng trong game hoặc kho bài. `cardPresentation.ts` quyết định minh họa cố định; cài đặt `kittens.style` cũ không ảnh hưởng hiển thị. Bài trên tay, bộ bỏ, khay xem trước, kho bài và hoạt ảnh dùng cùng minh họa. Module nét vẽ được tải khi một lá thuộc nét đó xuất hiện; bộ xem trước ở trang vào game dùng cả bốn.
+
+22 loại lá có mèo, biểu cảm, tư thế, đạo cụ và mảng màu nguyên bản. Nền giấy hồng ấm, mặt sau đỏ gạch; Cứu Nổ xanh, Mèo Nổ đỏ, các chức năng và họ combo có màu riêng. Tên, nhóm và mô tả luôn ở cùng vị trí. Kho bài có bộ lọc, luật VI/EN và xem hoạt ảnh; trên mobile cuộn theo một cột.
 
 ## Chạy trên máy
 
@@ -62,7 +68,7 @@ Server giữ 100 tin gần nhất của từng phòng, độc lập nhật ký h
 - Các bước Xin bài, Dơi và Hamster chỉ chọn đúng một lá mỗi lần. Hamster hiển thị số lá còn phải bỏ. Hướng dẫn nhanh có ngay trên bàn, dịch VI/EN độc lập.
 - Đồng hồ và thanh thời gian dùng `serverNow` để bù lệch giờ trình duyệt. Mỗi phase ghi rõ người cần trả lời và fallback khi hết giờ. Trạng thái đã bỏ qua Nope giữ được sau reconnect.
 - **Tự chơi tắt mặc định mỗi ván**: tự rút khi còn 5 giây hoặc tự chơi cơ bản. Cơ bản ưu tiên xem tương lai, tránh nổ đã biết, ghép bài mèo; giữ Cứu nổ, bỏ qua Nope, chọn bài ít giá trị cho quyết định bắt buộc, chèn xuống đáy và chọn Búa. Mỗi lượt tối đa ba hành động đánh trước khi rút. Bấm một lá để dừng. Tự chơi chỉ chạy ở tab đang hiện và kết nối; mọi ý định vẫn phải qua validation của server. Chơi lại đặt về Tắt. Đây là tính năng hỗ trợ của ứng dụng.
-- 22 loại bài có cảnh SVG riêng và màu chức năng; bốn style dùng cùng vị trí thông tin và chỉ tải module style được chọn.
+- 22 loại bài có cảnh SVG riêng và màu chức năng; bốn nét vẽ phối chung trong một bộ bài, cùng vị trí thông tin.
 
 ### Kiểm tra thao tác có bài được chuẩn bị
 
@@ -114,7 +120,7 @@ bash deploy/start-release.sh
 bash deploy/verify-release.sh
 ```
 
-Triển khai lại là thao tác bảo trì: container mới thay process và kết thúc các ván trong memory. File cấu hình Nginx được backup rồi kiểm tra trước reload. Không có cam kết triển khai không gián đoạn hoặc phục hồi ván qua restart.
+Triển khai lại backend là thao tác bảo trì: container mới thay process và kết thúc các ván trong memory. File cấu hình Nginx được backup rồi kiểm tra trước reload. Với bản chỉ đổi web và tương thích giao thức hiện tại, chạy `bash deploy/publish-web.sh`: build image production, lấy static từ container tạm không chạy, giữ asset cũ và thay index cuối cùng. Script kiểm tra container backend và thời điểm khởi động không đổi; Nginx không cần reload. Xem [hướng dẫn triển khai](deploy/README.md).
 
 Backend một instance trên VPS:
 

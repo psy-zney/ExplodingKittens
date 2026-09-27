@@ -1,5 +1,26 @@
 # Kết quả kiểm thử và triển khai
 
+## Một bộ bài phối bốn nét vẽ — 2026-09-27
+
+Yêu cầu mới nhất thay lựa chọn style riêng bằng **cả bốn nét vẽ trong một bộ bài chung**. `cardPresentation.ts` gán nét cố định cho từng CardType; CardView dùng cùng minh họa ở mọi trình duyệt, bất kể cài đặt style cũ. Không còn bộ chọn style ở entry, settings hoặc kho bài. Bài trên tay, bộ bỏ, khay xem riêng và hoạt ảnh đều dùng mapping chung. 22 loại lá có cảnh SVG gốc, mèo tô màu/tư thế/biểu cảm, đạo cụ và mảng màu. Bàn và mặt sau dùng giấy hồng ấm, đỏ gạch; Cứu Nổ xanh, nổ đỏ, chức năng/họ combo có màu riêng. Kho bài có bộ lọc, hướng dẫn VI/EN đúng combo 2/3; mobile cuộn một cột và hiển thị trọn lá xem trước.
+
+| Kiểm tra bản phối nét | Kết quả |
+| --- | --- |
+| Unit / integration | **72 PASS**: engine36 + Socket.IO26 + web10. Luật và giao thức server giữ nguyên trong lượt cập nhật mỹ thuật này. |
+| Build / typecheck / UTF-8 | PASS toàn workspace; Docker production build trên VPS PASS. Web local và Docker tạo cùng JS SHA256. |
+| UI local | **3/3 PASS**: kho 22 loại/bốn nét, hai browser VI/EN chơi hết ván, mobile touch. Sau sửa kích thước/cuộn kho bài, case kho desktop/mobile PASS lại. |
+| UI production HTTPS | **5/5 PASS** trong khoảng 1,4 phút: kho bài desktop/mobile đủ bốn nét và không có selector; chat VI/EN/escaping/unread/reconnect/full game/rematch; chat mobile/focus/offline draft; hai browser có preference style cũ khác nhau vẫn thấy Defuse cùng SVG, âm thanh chỉ mở sau tương tác/Mute, spectator/privacy/guest refresh/winner/rematch; mobile touch chọn bài/chèn khe và hoàn thành ván. |
+| Socket.IO forced transport | **2/2 PASS**: HTTPS WebSocket và HTTP9000 polling. Mỗi transport hoàn thành BASE2 người và EXTENDED3 người + Hồi Sinh, public snapshots đồng nhất, có người thắng và rematch. Kịch bản transport dùng rút/chèn để kết thúc ván; hiệu ứng mở rộng có unit test riêng. |
+| Publish và Nginx | PASS compose config, `bash -n`, Nginx `-t`, HTTP/static asset/SPA fallback/404/health/polling proxy. Script `publish-web.sh` lấy web từ container tạm không chạy, giữ asset cũ, backup index và thay index cuối cùng. Backend container và thời điểm khởi động không đổi: `2026-09-27T08:03:12.257666527Z`. |
+
+Bằng chứng: [UI production](qa/mixed-art-production/browser-results.json), [Playwright](qa/mixed-art-production/playwright-report/index.html), [WebSocket HTTPS](qa/mixed-art-production/websocket-https.json), [polling HTTP9000](qa/mixed-art-production/polling-http9000.json), [release metadata](qa/mixed-art-production/release.json). Ảnh thật: [kho bài desktop](qa/mixed-art-production/screenshots/mixed-codex-desktop.png), [kho mobile](qa/mixed-art-production/screenshots/mixed-codex-mobile.png), [bàn desktop](qa/mixed-art-production/screenshots/table-desktop.png), [bàn mobile](qa/mixed-art-production/screenshots/table-mobile.png), [chat](qa/mixed-art-production/screenshots/chat-table.png).
+
+UI production: JS `index-C-Kb0D2G.js`403,55kB, gzip125,81kB; CSS `index-BAPSF61f.css`84,54kB, gzip18,24kB; shared artwork chunk12,28kB, gzip4,30kB. JS SHA256 `9086188C88EF70F0A6D756043082F9A8BF59A152AA5C59BC4B175C39CD88F16B`; source archive build SHA256 `6A6E83E5E6945D1BC07BE0B5C3C53F786770291CA7E5161CD109F644E1B36AE8`. Image chứa web mới và runtime sẵn cho lần bảo trì sau: `370f47351d02c4b7ac905096ba6ea9cf93f7164bbef6b223dc0d3a1892b0f1e5`. Backend đang chạy image tương thích của bản chat `e48a1cc636873d32bccca36ab2ce6ab0eff311f0b77f0177b81a58cee8859e9e`; không thay process đang giữ các phòng.
+
+Đo rAF khi rút/chèn bài trong ván thật trên Chromium153.0.8010.12 headless, Windows10.0.26200, Core i5-12450HX/12 logical CPU/24GiB. Desktop1440×1000:604 mẫu, median16,7ms, p9516,7ms, max100ms;68,05% trong16,7ms và98,51% dưới17ms. Mobile touch giả lập390×844 trên cùng CPU, không throttle:638 mẫu, median16,7ms, p9516,7ms, max16,8ms;70,85% trong16,7ms và100% dưới17ms. Local dev có HMR/compile và frame gián đoạn lớn hơn; số production phía trên đo riêng. Đây là khoảng cách callback rAF, chưa đo compositor GPU hoặc điện thoại vật lý, không chứng nhận60FPS trên mobile thật.
+
+Ngôn ngữ, âm lượng và reduced motion tiếp tục là cài đặt riêng. Nhạc/SFX tổng hợp nguyên bản và nút Mute nhanh trong header được giữ từ cập nhật đồng thời trong workspace; browser test kiểm tra gate/Mute, chưa đánh giá nghe trên mọi thiết bị. Rooms/history vẫn lưu RAM và mất khi restart backend. Các mục bên dưới là kết quả của các release trước, gồm hành vi chọn style cũ đã được thay thế trong bản này.
+
 ## Bổ sung khung chat — 2026-09-27
 
 Đã deploy khung chat riêng trong lobby, bàn chơi và kết quả. Desktop có sidebar; mobile có nút nổi, số tin chưa đọc và dialog hỗ trợ bàn phím/focus. Có nickname, giờ gửi từ server, Enter/Shift+Enter, nhãn VI/EN, giới hạn 240 ký tự, giữ bản nháp khi thu gọn/chuyển màn/offline và không xóa trước khi nhận ack thành công. Server lưu riêng 100 tin gần nhất theo phòng, độc lập vòng 200 event, giữ qua start/rematch và reconnect. Nội dung người chơi được render như văn bản.

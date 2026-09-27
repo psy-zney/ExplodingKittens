@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { calculateDeckScaling } from '@kittens/shared';
 import { CardView } from './CardView';
 import { cardName, EXPANSION_TYPES, t } from './i18n';
 import type { Language, Room, RoomMode, ServerSnapshot } from './types';
@@ -100,6 +101,7 @@ function Lobby({ lang, room, selfId, busy, ready, start, settings, leave, onOpen
   const self = room.players.find(player => player.id === selfId);
   const host = room.hostId === selfId;
   const allReady = room.players.length >= 2 && room.players.every(player => player.ready && player.connected);
+  const scaling = calculateDeckScaling(room.players.length, room.options.mode, room.options.resurrection);
   const invite = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room.code)}`;
   async function copyInvite() {
     try { await navigator.clipboard.writeText(invite); setCopied(true); window.setTimeout(() => setCopied(false), 2500); }
@@ -111,6 +113,46 @@ function Lobby({ lang, room, selfId, busy, ready, start, settings, leave, onOpen
       {copyError && <p role="alert" className="inline-error">{t(lang, 'errorCopied')}</p>}
       <div className="player-list-header"><h2>{t(lang, 'seats')} <span>{room.players.length}/5</span></h2><span>{t(lang, 'invite')}</span></div>
       <ol className="player-list">{room.players.map((player, index) => <li key={player.id} className="player-list-row"><span className="seat-number">{String(index + 1).padStart(2, '0')}</span><span className="tiny-cat" aria-hidden="true">◡</span><strong>{player.name}{player.id === selfId ? <small> · {lang === 'vi' ? 'bạn' : 'you'}</small> : null}</strong>{player.id === room.hostId && <span className="host-label">{t(lang, 'host')}</span>}<span className={`ready-badge ${player.ready ? 'is-ready' : ''}`}>{t(lang, player.ready ? 'ready' : 'notReady')}</span>{!player.connected && <span className="offline-dot" title={t(lang, 'disconnected')}/>}</li>)}</ol>
+      <div className="lobby-deck-scaling-box">
+        <div className="deck-scaling-header">
+          <div className="deck-scaling-title">
+            <span>⚡</span>
+            <span>{lang === 'vi' ? `Tự Cân Bằng Cọc Bài (${room.players.length} người)` : `Dynamic Deck Balancing (${room.players.length} players)`}</span>
+          </div>
+          <span className="deck-scaling-badge">{lang === 'vi' ? 'Tự co giãn' : 'Auto-scaled'}</span>
+        </div>
+        <div className="deck-scaling-grid">
+          <div className="scaling-card">
+            <span className="scaling-card-label">💣 {lang === 'vi' ? 'Mèo Nổ (Boom)' : 'Exploding'}</span>
+            <div className="scaling-card-value">
+              <span>{scaling.activeKittens}</span>
+              <small>{room.players.length} - 1</small>
+            </div>
+            <span className="scaling-card-detail">{lang === 'vi' ? 'Đúng bằng số người - 1' : 'Exactly players - 1'}</span>
+          </div>
+          <div className="scaling-card">
+            <span className="scaling-card-label">🛡️ {lang === 'vi' ? 'Cứu Nổ (Defuse)' : 'Defuses'}</span>
+            <div className="scaling-card-value">
+              <span>{scaling.totalDefusesInGame}</span>
+              <small>{scaling.startingDefuses} + {scaling.extraDefusesInDeck}</small>
+            </div>
+            <span className="scaling-card-detail">{lang === 'vi' ? `${scaling.startingDefuses} phát tay + ${scaling.extraDefusesInDeck} cọc rút` : `${scaling.startingDefuses} dealt + ${scaling.extraDefusesInDeck} in deck`}</span>
+          </div>
+          <div className="scaling-card">
+            <span className="scaling-card-label">🃏 {lang === 'vi' ? 'Tổng bộ bài' : 'Total Deck'}</span>
+            <div className="scaling-card-value">
+              <span>{scaling.totalDeckCards}</span>
+              <small>{lang === 'vi' ? 'lá' : 'cards'}</small>
+            </div>
+            <span className="scaling-card-detail">{room.options.mode === 'BASE' ? (lang === 'vi' ? 'Bộ Gốc' : 'Base') : (lang === 'vi' ? 'Bộ Mở Rộng' : 'Extended')}{room.options.resurrection ? ' + Hồi Sinh' : ''}</span>
+          </div>
+        </div>
+        <div className="deck-scaling-tip">
+          {lang === 'vi'
+            ? '💡 Số lượng Mèo Nổ và Cứu Nổ tự động mở rộng / thu hẹp theo số người chơi để ván đấu luôn cân bằng với đúng 1 người chiến thắng!'
+            : '💡 Boom and Defuse card counts automatically expand or contract based on player count to ensure exactly one survivor wins!'}
+        </div>
+      </div>
       <div className="lobby-buttons">{self && <button className={`button ${self.ready ? 'button-outline' : 'button-primary'}`} type="button" disabled={busy} onClick={() => void ready(!self.ready)}>{t(lang, self.ready ? 'unready' : 'markReady')}</button>}{host && <button className="button button-dark" type="button" disabled={!allReady || busy} onClick={() => void start()}>{t(lang, 'start')} <span aria-hidden="true">→</span></button>}<button className="button button-outline" type="button" onClick={onOpenCodex}>{t(lang, 'cardCodex')} ✦</button></div>
       {!allReady && <p className="quiet-note">{t(lang, 'lobbyMinimum')}</p>}
     </section>
@@ -156,6 +198,6 @@ export default function App() {
     {settingsOpen && <SettingsPanel lang={lang} settings={audio.settings} setSettings={audio.setSettings} enabled={audio.enabled} enable={audio.enable} reduced={reduced} setReduced={setReduced} skip={skip} setSkip={setSkip} onClose={() => setSettingsOpen(false)}/>}
     {codexOpen && <CardCodexModal lang={lang} onClose={() => setCodexOpen(false)} onPlaySfx={audio.playSfx}/>}
     {((!room && (game.busy || game.connection === 'connecting')) || (room?.status === 'LOBBY' && (game.busy || game.connection === 'connecting'))) && <LobbyLoading lang={lang} context={game.connection === 'connecting' ? 'connecting' : !room ? 'create' : 'ready'}/>}
-    {room && <footer className="app-footer"><span>{room.code}</span><span>{room.options.mode === 'BASE' ? '56' : '64'} {lang === 'vi' ? 'lá' : 'cards'}{room.options.resurrection ? ' + 2' : ''}</span><span>{game.events.some(event => event.key !== 'event.hidden') ? eventText(lang, game.events.filter(event => event.key !== 'event.hidden').at(-1)!, room.players) : t(lang, 'tagline')}</span></footer>}
+    {room && <footer className="app-footer"><span>{room.code}</span><span>{room.players.length} {lang === 'vi' ? 'người' : 'players'} · 💣 {Math.max(1, room.players.length - 1)} Boom · 🛡️ {room.players.length + (room.players.length >= 5 ? 1 : 2)} Defuse</span><span>{room.options.mode === 'BASE' ? '56' : '64'} {lang === 'vi' ? 'lá' : 'cards'}{room.options.resurrection ? ' + 2' : ''}</span><span>{game.events.some(event => event.key !== 'event.hidden') ? eventText(lang, game.events.filter(event => event.key !== 'event.hidden').at(-1)!, room.players) : t(lang, 'tagline')}</span></footer>}
   </div>;
 }

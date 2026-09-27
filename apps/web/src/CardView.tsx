@@ -57,14 +57,14 @@ export function CardView({ card, lang, selected, onClick, disabled, compact = fa
   const content = <>
     <span className="card-header"><span className="card-corner" aria-hidden="true">{visual.symbol}</span><span className="card-category">{category}</span></span>
     <span className="card-title">{title}</span>
-    <span className="card-art"><Suspense fallback={<span aria-hidden="true">◡</span>}><Art type={card.type}/></Suspense></span>
+    <span className="card-art"><Suspense fallback={<span aria-hidden="true">◡</span>}><Art type={card.type} variant={card.artVariant??0}/></Suspense></span>
     {!compact && <span className="card-description">{cardDescription(lang, card.type)}</span>}
     {hint && <span className="card-hint">{hint}</span>}
   </>;
   const classes = `playing-card style-${style} tone-${visual.tone} ${card.type === 'EXPLODING_KITTEN' ? 'is-danger' : ''} ${selected ? 'is-selected' : ''} ${compact ? 'is-compact' : ''} ${selectable ? 'is-playable' : ''} ${hint ? 'is-suggested' : ''} ${className}`;
   const accessibleLabel = `${title}. ${category}. ${cardDescription(lang, card.type)}${hint ? `. ${hint}` : ''}${selectable ? lang === 'vi' ? '. Có thể chọn.' : '. Selectable.' : ''}`;
-  return onClick ? <button type="button" className={classes} data-art-style={style} data-card-type={card.type} onClick={onClick} disabled={disabled} aria-pressed={!!selected} aria-label={accessibleLabel}>{content}</button>
-    : <div className={classes} data-art-style={style} data-card-type={card.type} role="img" aria-label={accessibleLabel}>{content}</div>;
+  return onClick ? <button type="button" className={classes} data-art-style={style} data-card-type={card.type} data-art-variant={card.artVariant??0} onClick={onClick} disabled={disabled} aria-pressed={!!selected} aria-label={accessibleLabel}>{content}</button>
+    : <div className={classes} data-art-style={style} data-card-type={card.type} data-art-variant={card.artVariant??0} role="img" aria-label={accessibleLabel}>{content}</div>;
 }
 
 export function CardBack({ count, label, className = '' }: { count?: number; label?: string; className?: string }) {

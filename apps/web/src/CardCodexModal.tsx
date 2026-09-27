@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { calculateDeckScaling } from '@kittens/shared';
 import type { CardType, Language } from './types';
 import { CardView, CARD_VISUALS } from './CardView';
 import { cardDescription, cardName, EXPANSION_TYPES, t } from './i18n';
@@ -36,8 +37,16 @@ const ALL_TYPES: CardType[] = [
 ];
 
 const CARD_COUNTS: Record<CardType, { count: string; noteVi: string; noteEn: string }> = {
-  EXPLODING_KITTEN: { count: 'N - 1', noteVi: 'Bằng số người chơi trừ 1 (3 lá trong bàn 4 người)', noteEn: 'Players minus 1 (3 cards for 4 players)' },
-  DEFUSE: { count: '6 lá', noteVi: 'Mỗi người nhận 1 lá lúc đầu; đưa tối đa 2 lá dư vào bộ rút', noteEn: '1 dealt to each player; up to 2 spares enter the draw pile' },
+  EXPLODING_KITTEN: {
+    count: 'N - 1 lá (Tự co giãn)',
+    noteVi: 'Tự động mở rộng & thu hẹp theo số người chơi (Số Boom = Số người - 1). Ví dụ: 2 người = 1 Boom, 3 người = 2 Boom, 4 người = 3 Boom, 5 người = 4 Boom.',
+    noteEn: 'Dynamically scales with player count (Booms = Players - 1). E.g. 2 players = 1 Boom, 3 players = 2 Booms, 4 players = 3 Booms, 5 players = 4 Booms.'
+  },
+  DEFUSE: {
+    count: 'N + 1~2 lá (Tự co giãn)',
+    noteVi: 'Tự động cấp 1 lá trên tay cho mỗi người chơi (N lá). Cọc rút giữ thêm 1-2 lá phòng ngừa (N < 5: thêm 2 lá; N ≥ 5: thêm 1 lá).',
+    noteEn: 'Dynamically scales: each player starts with 1 Defuse (N cards). The draw pile holds 1-2 extra (N < 5: 2 extra; N ≥ 5: 1 extra).'
+  },
   ATTACK: { count: '4 lá', noteVi: 'Có trong bộ gốc 56 lá', noteEn: 'Included in base 56-card deck' },
   FAVOR: { count: '4 lá', noteVi: 'Có trong bộ gốc 56 lá', noteEn: 'Included in base 56-card deck' },
   NOPE: { count: '5 lá', noteVi: 'Lá phản đòn quan trọng nhất', noteEn: 'Crucial interrupt card' },
@@ -294,6 +303,10 @@ export function CardCodexModal({ lang, onClose, onPlaySfx }: CardCodexModalProps
                   </p>
                 )}
               </div>
+
+              {(selectedType === 'EXPLODING_KITTEN' || selectedType === 'DEFUSE') && (
+                <DeckScalingSimulator lang={lang} />
+              )}
             </div>
 
             {/* Animation Arena */}
@@ -513,4 +526,58 @@ function CardSimulationScene({ type, lang }: { type: CardType; lang: Language })
     default:
       return <div style={{ fontSize: '3rem' }}>✨</div>;
   }
+}
+
+
+function DeckScalingSimulator({ lang }: { lang: Language }) {
+  const [simPlayers, setSimPlayers] = useState<number>(4);
+  const scaling = calculateDeckScaling(simPlayers, 'BASE', false);
+
+  return (
+    <div className="codex-scaling-simulator">
+      <div className="simulator-header">
+        <h4>
+          <span>⚙️</span>
+          <span>{lang === 'vi' ? 'Mô Phỏng Co Giãn Theo Số Người' : 'Dynamic Deck Scaling Simulator'}</span>
+        </h4>
+        <div className="simulator-player-selector">
+          <span>{lang === 'vi' ? 'Số người:' : 'Players:'}</span>
+          {[2, 3, 4, 5].map((count) => (
+            <button
+              key={count}
+              type="button"
+              className={`simulator-p-btn ${simPlayers === count ? 'active' : ''}`}
+              onClick={() => setSimPlayers(count)}
+            >
+              {count} {lang === 'vi' ? 'người' : 'P'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="simulator-grid">
+        <div className="simulator-stat">
+          <span>{lang === 'vi' ? 'Mèo Nổ (Boom)' : 'Exploding'}</span>
+          <strong>{scaling.activeKittens} {lang === 'vi' ? 'lá' : 'cards'}</strong>
+          <small>{simPlayers} - 1</small>
+        </div>
+        <div className="simulator-stat">
+          <span>{lang === 'vi' ? 'Cứu Nổ (Defuse)' : 'Defuses'}</span>
+          <strong>{scaling.totalDefusesInGame} {lang === 'vi' ? 'lá' : 'cards'}</strong>
+          <small>{scaling.startingDefuses} tay + {scaling.extraDefusesInDeck} cọc</small>
+        </div>
+        <div className="simulator-stat">
+          <span>{lang === 'vi' ? 'Tổng bộ bài' : 'Deck Size'}</span>
+          <strong>{scaling.totalDeckCards} {lang === 'vi' ? 'lá' : 'cards'}</strong>
+          <small>{lang === 'vi' ? 'Bộ gốc 56' : 'Base 56'}</small>
+        </div>
+      </div>
+
+      <div className="simulator-formula-box">
+        {lang === 'vi'
+          ? `💡 Với ${simPlayers} người chơi: Cọc rút luôn giữ chính xác ${scaling.activeKittens} Mèo Nổ. Khi ${scaling.activeKittens} người bị nổ tung, đúng 1 người sống sót duy nhất sẽ chiến thắng!`
+          : `💡 For ${simPlayers} players: The draw pile holds exactly ${scaling.activeKittens} Exploding Kittens. Once ${scaling.activeKittens} players explode, exactly 1 survivor wins!`}
+      </div>
+    </div>
+  );
 }

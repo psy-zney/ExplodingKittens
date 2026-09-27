@@ -8,8 +8,8 @@ export const cardTypes = [
 ] as const;
 export const cardTypeSchema = z.enum(cardTypes);
 export type CardType = z.infer<typeof cardTypeSchema>;
-export type Card = { instanceId: string; type: CardType };
-export const cardSchema = z.object({ instanceId: z.string().min(1), type: cardTypeSchema });
+export type Card = { instanceId: string; type: CardType; artVariant?: number };
+export const cardSchema = z.object({ instanceId: z.string().min(1), type: cardTypeSchema, artVariant: z.number().int().min(0).max(31).optional() });
 
 export const gameModes = ['BASE', 'EXTENDED'] as const;
 export type GameMode = typeof gameModes[number];
@@ -116,3 +116,33 @@ export type PrivateSnapshot = PublicSnapshot & {
   };
 };
 export type SpectatorSnapshot = PublicSnapshot & {isSpectator:true};
+
+export type DeckScalingInfo = {
+  playerCount: number;
+  activeKittens: number;
+  startingDefuses: number;
+  extraDefusesInDeck: number;
+  totalDefusesInGame: number;
+  totalDeckCards: number;
+};
+
+export function calculateDeckScaling(playerCount: number, mode: GameMode = 'BASE', resurrection = false): DeckScalingInfo {
+  const count = Math.max(2, playerCount);
+  const activeKittens = Math.max(1, count - 1);
+  const startingDefuses = count;
+  const extraDefusesInDeck = count >= 5 ? 1 : 2;
+  const totalDefusesInGame = startingDefuses + extraDefusesInDeck;
+  const baseOtherCards = 46;
+  const expansionCards = mode === 'EXTENDED' ? 8 : 0;
+  const resurrectionCards = resurrection ? 2 : 0;
+  const otherCards = baseOtherCards + expansionCards + resurrectionCards;
+  const totalDeckCards = otherCards + totalDefusesInGame + activeKittens;
+  return {
+    playerCount: count,
+    activeKittens,
+    startingDefuses,
+    extraDefusesInDeck,
+    totalDefusesInGame,
+    totalDeckCards
+  };
+}

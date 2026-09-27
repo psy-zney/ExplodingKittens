@@ -10,12 +10,16 @@ export const EXTENSION_TYPES: readonly CardType[] = [
   'AMATEUR_ARCHAEOLOGY','BATTLE_HAMSTER','CREEPY_PEEKY','HIP_BAT',
   'HIP_CAT','PLUS_PLUS','ROBIN_HOOD','THE_TWINS'
 ];
-export function makeDeck(mode:GameMode='BASE', resurrection=false):Card[] {
+export function makeDeck(mode:GameMode='BASE', resurrection=false, playerCount=5):Card[] {
   const counts:Partial<Record<CardType,number>>={...BASE_COUNTS};
+  if (playerCount > 5) {
+    counts.EXPLODING_KITTEN = playerCount - 1;
+    counts.DEFUSE = playerCount + 1;
+  }
   if (mode==='EXTENDED') for (const type of EXTENSION_TYPES) counts[type]=1;
   if (resurrection) counts.RESURRECTION=2;
   let n=0;
-  return Object.entries(counts).flatMap(([type,count])=>Array.from({length:count ?? 0},()=>({instanceId:`card-${++n}`,type:type as CardType})));
+  return Object.entries(counts).flatMap(([type,count])=>Array.from({length:count ?? 0},(_,artVariant)=>({instanceId:`card-${++n}`,type:type as CardType,artVariant})));
 }
 export function secureRandom():number {
   const bytes=new Uint32Array(1);

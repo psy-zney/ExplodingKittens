@@ -8,7 +8,7 @@ export type CardType =
   | 'AMATEUR_ARCHAEOLOGY' | 'BATTLE_HAMSTER' | 'CREEPY_PEEKY'
   | 'HIP_BAT' | 'HIP_CAT' | 'PLUS_PLUS' | 'ROBIN_HOOD' | 'THE_TWINS'
   | 'RESURRECTION';
-export type Card = { instanceId: string; type: CardType };
+export type Card = { instanceId: string; type: CardType; artVariant?: number };
 export type GamePhase = 'TURN' | 'NOPE_WINDOW' | 'FAVOR_CHOICE' | 'DEFUSE_INSERT' | 'HIP_CAT_CHOICE' | 'HIP_BAT_DISCARD' | 'BATTLE_HAMSTER_DISCARD' | 'ARCHAEOLOGY_CHOICE' | 'FINISHED';
 export type Player = { id: string; name: string; ready?: boolean; connected?: boolean; eliminated?: boolean; alive?: boolean; handCount?: number; hipBatRemaining?: number; eliminatedKittenCount?: number };
 export type Room = {

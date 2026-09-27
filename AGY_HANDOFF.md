@@ -4,9 +4,19 @@ Updated 2026-09-27. Workspace: `C:/Users/admin/MyProject/ExxploreKittens`.
 
 ## Mục tiêu và phạm vi
 
-Hoàn thiện và vận hành game Mèo Nổ online thật: tạo phòng, VI/EN + bốn style riêng từng browser, 2–5 ghế, 56/64 lá, Hồi Sinh tùy chọn, thắng và rematch. Các range dính chữ trong brief đã được đọc là 2–5 người, 16–32px, 45–75s, 180–550ms, thêm 2 lá Hồi Sinh. Không có rule combo 4; có màu riêng từng họ Cat Card, combo 2/3. Tám lá mở rộng và Hồi Sinh là luật ứng dụng, contract trong lobby và `docs/RULE_CONTRACT.md`.
+Hoàn thiện và vận hành game Mèo Nổ online thật: tạo phòng, VI/EN riêng từng browser, 2–5 ghế, 56/64 lá, Hồi Sinh tùy chọn, thắng và rematch. Yêu cầu mỹ thuật mới nhất: cả bốn nét vẽ phối chung trong một bộ bài, bỏ chọn style riêng; minh họa màu sắc phong phú, nền hơi đỏ. Các range dính chữ trong brief đã được đọc là 2–5 người, 16–32px, 45–75s, 180–550ms, thêm 2 lá Hồi Sinh. Không có rule combo 4; có màu riêng từng họ Cat Card, combo 2/3. Tám lá mở rộng và Hồi Sinh là luật ứng dụng, contract trong lobby và `docs/RULE_CONTRACT.md`.
 
 ## Đã hoàn tất và xác minh
+
+### Yêu cầu mới: phối bốn nét vẽ trong cùng bộ bài — đã deploy
+
+- Người dùng đã bỏ yêu cầu mỗi browser chọn một style: **mọi nét vẽ cùng xuất hiện trong một bộ bài**, màu sắc phong phú hơn, nền hơi đỏ. Không khôi phục StylePicker ở entry/settings/kho bài hoặc `style` prop cho CardView. `kittens.style` cũ chỉ bị bỏ qua; ngôn ngữ/audio/motion vẫn riêng từng người.
+- `cardPresentation.ts` ánh xạ CardType→ArtStyle cố định. CardView, Table/private insight, GameEffects, entry preview, results và CardCodex cùng dùng mapping. `CatActor.tsx` + `CardScene.tsx` có mèo tô màu/biểu cảm/tư thế/đạo cụ/cảnh; `IllustratedDeck.css` là override cuối cùng, giấy hồng ấm/đỏ gạch. Minh họa SVG gốc, không sao chép artwork thương mại. Kho đúng22 loại/base13, bộ lọc, card gallery, luật VI/EN; mobile một vùng cuộn, preview trọn lá.
+- Cập nhật âm thanh và kho bài từ phiên khác đã được giữ; đã sửa các prop style cũ bị thêm lại, luật combo5 chưa triển khai bị ghi nhầm trong kho, Defuse dư tối đa2 và hướng dẫn Attack thường2/inherited debt+2. Không sửa engine/server/schema.
+- **72 unit/integration PASS**, typecheck/build/UTF-8 PASS; Docker production build PASS. **5/5 UI production PASS**: mixed deck desktop/mobile, chat desktop/mobile, full game2-browser VI/EN + audio/privacy/reconnect/winner/rematch, mobile full game. **2/2 forced transport PASS**: HTTPS WS và HTTP9000 polling, mỗi transport có ván BASE2 và EXTENDED3 + Hồi Sinh đến winner/rematch. `docs/qa/mixed-art-production` và phần đầu `docs/TEST_REPORT.md` là bằng chứng mới nhất.
+- Web mới `index-C-Kb0D2G.js`; image đã build `370f47351d02c4b7ac905096ba6ea9cf93f7164bbef6b223dc0d3a1892b0f1e5`. Đã publish web bằng `deploy/publish-web.sh`, **không restart backend**. Backend vẫn dùng image chat `e48a1cc636873d32bccca36ab2ce6ab0eff311f0b77f0177b81a58cee8859e9e`, started08:03:12UTC không đổi. Image tag mới sẵn cho lần bảo trì tiếp theo; đừng gọi đó là image backend đang chạy.
+- `publish-web.sh` chỉ dùng khi web tương thích protocol hiện tại: build image, tạo container tạm không chạy, copy static/giữ hashed assets cũ/backup index/publish index cuối, kiểm tra backend ID/starttime không đổi rồi verify Nginx. Nếu đổi server/schema phải dùng maintenance release có kiểm tra phòng đang chơi. Không restart chỉ để cập nhật docs.
+- Báo cáo frame hiện tại là rAF trên Chromium headless i5-12450HX, mobile giả lập; không khẳng định đã đo điện thoại thật. Các kết quả style chọn riêng phía dưới thuộc release trước.
 
 ### Bổ sung khung chat đã deploy
 

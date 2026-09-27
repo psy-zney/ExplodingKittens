@@ -235,3 +235,97 @@
   .codex-mini-grid{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));max-height:130px}
   .animation-arena{padding:14px;min-height:180px}
 }
+
+/* Interactive Deck Scaling Simulator in Card Codex */
+.codex-scaling-simulator {
+  background: var(--card, #fffefa);
+  border: 1.5px solid var(--ink, #232320);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 4px 4px 0 #dfdbd1;
+}
+.simulator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.simulator-header h4 {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.simulator-player-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.simulator-player-selector span {
+  font-size: .72rem;
+  color: var(--muted, #77756f);
+  font-weight: 750;
+}
+.simulator-p-btn {
+  border: 1px solid var(--line, #d7d3c9);
+  background: var(--paper, #f4f1e9);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.simulator-p-btn:hover {
+  border-color: var(--ink, #232320);
+}
+.simulator-p-btn.active {
+  background: var(--ink, #232320);
+  color: white;
+  border-color: var(--ink, #232320);
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+}
+.simulator-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.simulator-stat {
+  background: var(--subtle, #ece8df);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+.simulator-stat span {
+  font-size: .65rem;
+  text-transform: uppercase;
+  color: var(--muted, #77756f);
+  font-weight: 800;
+}
+.simulator-stat strong {
+  font-size: 1.15rem;
+  color: var(--ink, #232320);
+}
+.simulator-stat small {
+  font-size: .62rem;
+  color: var(--accent-dark, #a33222);
+  font-weight: 700;
+}
+.simulator-formula-box {
+  background: #fdfaf2;
+  border: 1px dashed #d5cbaf;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: .73rem;
+  line-height: 1.45;
+  color: #554d38;
+}

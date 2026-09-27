@@ -1,0 +1,122 @@
+{
+  "recordedAt": "2026-09-27T09:33:10.643Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "https://beatsync-server.zney295.id.vn/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": false,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 1440,
+        "content": 1440
+      }
+    },
+    {
+      "test": "mixed-illustrated-deck",
+      "mobile": true,
+      "styles": [
+        "geometry",
+        "pen",
+        "pixel",
+        "stamp"
+      ],
+      "galleryTypes": 22,
+      "legacyPreferenceIgnored": true,
+      "fit": {
+        "width": 390,
+        "content": 390
+      }
+    },
+    {
+      "test": "room-chat-desktop",
+      "messages": 4,
+      "languages": [
+        "vi",
+        "en"
+      ],
+      "restoredAfterReconnect": true,
+      "rematchHistory": true,
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "b20f0a11-4cbb-408e-b14d-bf791cb13464",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "room-chat-mobile",
+      "viewport": "390 × 844, touch",
+      "inputPx": 16,
+      "offlineDraftRetained": true,
+      "unread": true
+    },
+    {
+      "test": "two-player-full-game",
+      "gameId": "21563cc8-cc7d-422b-8724-dd45bae68e83",
+      "nextGameId": "57f2b2e6-81d0-4861-8b32-5d83667f1544",
+      "actions": 20,
+      "inserted": [
+        "MIDDLE_HIDDEN"
+      ],
+      "winnerId": "3672dade-606d-4787-9e88-08b5c83315fc",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 604,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "maxMs": 100,
+        "within16_7Percent": 68.04635761589404,
+        "within17Percent": 98.50993377483444
+      }
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 23,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP"
+      ],
+      "winnerId": "c27b87b3-06c8-4361-836e-b226a32e625f",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 638,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "maxMs": 16.80000000000109,
+        "within16_7Percent": 70.84639498432603,
+        "within17Percent": 100
+      }
+    }
+  ]
+}

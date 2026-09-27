@@ -1,0 +1,24 @@
+{
+  "publishedAt": "2026-09-27T09:31:29Z",
+  "url": "https://beatsync-server.zney295.id.vn/kittens/",
+  "httpURL": "http://149.118.50.176:9000/kittens/",
+  "sourceArchiveSha256": "6A6E83E5E6945D1BC07BE0B5C3C53F786770291CA7E5161CD109F644E1B36AE8",
+  "webImage": "sha256:370f47351d02c4b7ac905096ba6ea9cf93f7164bbef6b223dc0d3a1892b0f1e5",
+  "webEntry": "/kittens/assets/index-C-Kb0D2G.js",
+  "webEntrySha256": "9086188C88EF70F0A6D756043082F9A8BF59A152AA5C59BC4B175C39CD88F16B",
+  "runningBackendImage": "sha256:e48a1cc636873d32bccca36ab2ce6ab0eff311f0b77f0177b81a58cee8859e9e",
+  "backendStartedAt": "2026-09-27T08:03:12.257666527Z",
+  "backendIdAndStartTimePreserved": true,
+  "publishMethod": "deploy/publish-web.sh",
+  "previousIndex": "/var/backups/exxplore-kittens/web-20260927T093129Z-1177253/index.html",
+  "checks": {
+    "unitIntegration": "72 passed: engine36, server26, web10",
+    "typecheck": "passed",
+    "productionBuildLocalAndDocker": "passed",
+    "browserProduction": "5 passed",
+    "httpsWebsocketGames": "passed: BASE2 and EXTENDED3 plus resurrection, synchronized winner and rematch",
+    "http9000PollingGames": "passed: BASE2 and EXTENDED3 plus resurrection, synchronized winner and rematch",
+    "nginxAndComposeConfig": "passed",
+    "httpHealthStaticSpaPolling": "passed"
+  }
+}

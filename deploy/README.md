@@ -24,6 +24,18 @@ bash deploy/verify-release.sh
 
 The build uses values in `.env`, initially copied from `deploy/vps.env.example`. The release script waits up to 60 seconds for the container healthcheck, then copies static build files from the image's `/app/public` to `/var/www/exxplore-kittens`, with directories 755 and files 644. A failed healthcheck stops the release before publishing static files. The server image runs as the Node user. Compose restart policy is `unless-stopped`; its healthcheck includes a 10-second startup grace period.
 
+### Compatible web updates without restarting rooms
+
+For changes confined to the browser that work with the running socket protocol:
+
+```sh
+bash deploy/publish-web.sh
+```
+
+This builds the complete production image using the VPS `.env`, creates a temporary container without starting it, and extracts `/app/public`. It validates the `/kittens/` asset prefix, backs up the previous index, publishes hashed assets first, and renames the new index last. Old hashed assets remain for open tabs. It compares the running game container ID and start time before and after publication, then runs the release verification. Nginx and the game process are not reloaded. The latest image tag is ready for a future backend maintenance release; the running backend may still use the earlier compatible image. Do not use this procedure for server or socket schema changes.
+
+The previous index is in `/var/backups/exxplore-kittens/web-<UTC timestamp>-<pid>/index.html`. To roll back this UI, copy that specific index back after confirming the saved asset is still available. This does not restore in-memory game state.
+
 Check both local routing and the public HTTPS path:
 
 ```sh

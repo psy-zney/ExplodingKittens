@@ -114,13 +114,13 @@ function draw(state:GameState,now:number,rng:RandomSource,events:GameEvent[]) {
     advanceTurn(state,now,events);
     return;
   }
-  emit(state,events,'card.exploded',{playerId:player.id});
+  emit(state,events,'card.exploded',{playerId:player.id,artVariant:card.artVariant??0});
   const defuse=player.hand.find(item=>item.type==='DEFUSE');
   if(defuse){
     removeOwned(player,defuse.instanceId);
     state.discardPile.push(defuse);
     setPhase(state,'DEFUSE_INSERT',{kind:'DEFUSE_INSERT',sourcePlayerId:player.id,kitten:card},now+CHOICE_MS);
-    emit(state,events,'card.defused',{playerId:player.id});
+    emit(state,events,'card.defused',{playerId:player.id,artVariant:defuse.artVariant??0});
     return;
   }
   player.alive=false;
@@ -342,12 +342,12 @@ export function createGame(options:CreateGameOptions):GameState {
   const {gameId,players,mode='BASE',resurrection=false,now=Date.now(),rng=secureRandom}=options;
   if(players.length<2||players.length>5) return fail('PLAYER_COUNT_INVALID');
   if(new Set(players.map(player=>player.id)).size!==players.length) return fail('DUPLICATE_PLAYER');
-  const all=makeDeck(mode,resurrection);
+  const all=makeDeck(mode,resurrection,players.length);
   const kittens=all.filter(card=>card.type==='EXPLODING_KITTEN');
   const defuses=all.filter(card=>card.type==='DEFUSE');
   const nonSpecial=shuffle(all.filter(card=>card.type!=='EXPLODING_KITTEN'&&card.type!=='DEFUSE'&&card.type!=='RESURRECTION'),rng);
   const statePlayers=players.map(seed=>({id:seed.id,name:seed.name,hand:[defuses.shift()!,...nonSpecial.splice(0,7)],alive:true,eliminatedKitten:null,bats:[],reviveAvailableCircuit:0}));
-  const extraDefuses=defuses.splice(0,Math.min(2,defuses.length));
+  const extraDefuses=defuses.splice(0,Math.min(players.length>=5?1:2,defuses.length));
   const activeKittens=kittens.splice(0,players.length-1);
   const resurrectionCards=all.filter(card=>card.type==='RESURRECTION');
   const drawPile=shuffle([...nonSpecial,...extraDefuses,...activeKittens,...resurrectionCards],rng);
