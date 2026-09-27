@@ -1,0 +1,21 @@
+{
+  "name": "@kittens/tutorial-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "remotion render src/index.ts Tutorial ../web/public/tutorial/huong-dan-choi-meo-no.mp4 --codec=h264 --crf=20 --concurrency=2 --disallow-parallel-encoding --overwrite",
+    "render:poster": "remotion still src/index.ts TutorialPoster ../web/public/tutorial/huong-dan-choi-meo-no-poster.png --overwrite",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "typescript": "^5.9.3"
+  }
+}

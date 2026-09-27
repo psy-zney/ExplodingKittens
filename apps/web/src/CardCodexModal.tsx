@@ -292,22 +292,23 @@ export function CardCodexModal({ lang, onClose, onPlaySfx, onStopSfx }: CardCode
 
               {/* Detailed Rules Contract */}
               <div className="card-detail-rules">
-                <strong>{lang === 'vi' ? 'Luật thi đấu & Cơ chế hoạt động' : 'Rule Contract & Behavior'}</strong>
+                <strong>{lang === 'vi' ? 'Cách dùng · Kết quả' : 'How to use it · Result'}</strong>
                 <p>
                   {t(lang, `rule.${selectedType}`) !== `rule.${selectedType}`
                     ? t(lang, `rule.${selectedType}`)
                     : countInfo[lang === 'vi' ? 'noteVi' : 'noteEn']}
                 </p>
                 {t(lang, `rule.detail.${selectedType}`) !== `rule.detail.${selectedType}` && (
-                  <p style={{ marginTop: 4, fontStyle: 'italic', opacity: 0.9 }}>
-                    {t(lang, `rule.detail.${selectedType}`)}
-                  </p>
+                  <details className="card-rule-contract">
+                    <summary>{t(lang, 'rule.contract')}</summary>
+                    <p>{t(lang, `rule.detail.${selectedType}`)}</p>
+                  </details>
                 )}
                 {visual.category === 'match' && (
-                  <p style={{ marginTop: 4, fontSize: '0.78rem' }}>
+                  <p className="card-combo-tip">
                     {lang === 'vi'
-                      ? 'Hai lá cùng tên: cướp ngẫu nhiên một lá. Ba lá cùng tên: gọi tên loại bài; chỉ lấy được nếu mục tiêu có. Chọn đối thủ rồi xác nhận đánh. Game này hỗ trợ combo 2 và 3 lá.'
-                      : 'Two matching cards: steal one random card. Three matching cards: name a type; take it only if the target has it. Choose an opponent, then confirm. This game supports two- and three-card combos.'}
+                      ? 'Trên bàn chơi: chọn chế độ Cặp hoặc Bộ ba → chọn đủ lá cùng tên → chọn đối thủ → xác nhận.'
+                      : 'At the table: choose Pair or Triple → select matching cards → choose a target → confirm.'}
                   </p>
                 )}
               </div>

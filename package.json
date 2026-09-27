@@ -15,7 +15,8 @@
     "pretest": "npm run build -w @kittens/shared && npm run build -w @kittens/engine",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "playwright test --config scripts/playwright.config.ts",
-    "check:encoding": "node scripts/check-encoding.mjs"
+    "check:encoding": "node scripts/check-encoding.mjs",
+    "video:tutorial": "npm run render -w @kittens/tutorial-video && npm run render:poster -w @kittens/tutorial-video"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

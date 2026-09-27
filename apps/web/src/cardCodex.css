@@ -56,6 +56,10 @@
 .card-detail-rules{display:flex;flex-direction:column;gap:6px;background:var(--subtle,#ece8df);padding:12px 14px;border-radius:8px;border-left:4px solid var(--ink,#232320)}
 .card-detail-rules strong{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#77756f)}
 .card-detail-rules p{margin:0;font-size:.8rem;line-height:1.5;color:var(--ink,#232320)}
+.card-rule-contract{margin-top:4px;border-top:1px solid var(--line,#d7d3c9);padding-top:8px}
+.card-rule-contract summary{cursor:pointer;font-size:.74rem;font-weight:800;color:var(--accent-dark,#a92d1f);text-underline-offset:3px}
+.card-rule-contract p{margin-top:8px;color:var(--muted,#77756f)}
+.card-combo-tip{margin-top:4px!important;padding-top:8px;border-top:1px dashed var(--line,#d7d3c9);font-weight:700}
 
 /* ANIMATION ARENA */
 .animation-arena{background:radial-gradient(ellipse at 50% 50%,#2e2b27 0%,#181614 100%);border:2px solid var(--ink,#232320);border-radius:10px;padding:20px;position:relative;overflow:hidden;min-height:220px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:inset 0 0 30px rgba(0,0,0,.6)}

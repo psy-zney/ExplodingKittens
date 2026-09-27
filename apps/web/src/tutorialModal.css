@@ -1,0 +1,9 @@
+.tutorial-modal{width:min(100%,980px);overflow:hidden}
+.tutorial-header{align-items:center}
+.tutorial-body{padding:20px;overflow:auto}
+.tutorial-player{display:block;width:100%;aspect-ratio:16/9;background:#171715;border:1.5px solid var(--ink);box-shadow:5px 6px 0 #d7d0c3}
+.tutorial-copy{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:17px}
+.tutorial-copy p{max-width:540px;margin:0;color:var(--muted);font-size:.88rem;line-height:1.55}
+.tutorial-chapters{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.tutorial-chapters span{border:1px solid var(--line);background:var(--card);padding:6px 8px;font-size:.65rem;font-weight:800;letter-spacing:.04em}
+@media(max-width:700px){.tutorial-body{padding:12px}.tutorial-copy{align-items:flex-start;flex-direction:column}.tutorial-chapters{justify-content:flex-start}.tutorial-header .eyebrow{font-size:.56rem}}

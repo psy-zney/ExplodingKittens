@@ -13,3 +13,5 @@ deploy/*.tgz
 .vercel
 
 deploy/native-baseline/
+apps/tutorial-video/preview-*.png
+apps/tutorial-video/test-clip.mp4

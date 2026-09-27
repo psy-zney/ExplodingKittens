@@ -12,6 +12,7 @@ import { eventText } from './eventText';
 import { useModalFocus } from './useModalFocus';
 import { LobbyLoading } from './LobbyLoading';
 import { CardCodexModal } from './CardCodexModal';
+import { TutorialModal } from './TutorialModal';
 import { DefuseDraft } from './DefuseDraft';
 import { SocialToolbar, SocialEffects } from './SocialPlayground';
 import { GameEffects } from './GameEffects';
@@ -186,6 +187,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [codexOpen, setCodexOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const game = useGameConnection();
   const audio = useAudio(game.snapshot?.room.status === 'PLAYING' ? 'game' : 'lobby', game.liveEvents);
   const room = game.snapshot?.room ?? null;
@@ -212,10 +214,10 @@ export default function App() {
     prevRoomStatus.current = room?.status;
   }, [room?.status]);
 
-  useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setSettingsOpen(false); setRulesOpen(false); setCodexOpen(false); } }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, []);
+  useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setSettingsOpen(false); setRulesOpen(false); setCodexOpen(false); setTutorialOpen(false); } }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, []);
   const error = game.error ? t(lang, `error.${game.error.code}`) === `error.${game.error.code}` ? t(lang, 'errorDefault') : t(lang, `error.${game.error.code}`) : '';
   return <div className={`app-shell ${reduced || skip ? 'motion-reduced' : ''}`}>
-    <header className="topbar"><div className="brand-lockup"><img src={import.meta.env.BASE_URL+'cat-ok.gif'} alt="Logo" className="brand-icon brand-icon-gif" aria-hidden="true" /><span>{t(lang, 'brand')}</span></div><div className="topbar-actions"><button className="topbar-link" type="button" onClick={() => { setCodexOpen(true); }} style={{ fontWeight: 800 }}>{t(lang, 'cardCodex')} ✦</button><span className={`connection-indicator ${game.connection}`} title={t(lang, game.connection === 'connected' ? 'connected' : game.connection === 'offline' ? 'offline' : 'connecting')}/><div className="language-switch" role="group" aria-label={t(lang, 'language')}><button type="button" className={lang === 'vi' ? 'active' : ''} aria-pressed={lang === 'vi'} onClick={() => { setLang('vi'); }}>VI</button><button type="button" className={lang === 'en' ? 'active' : ''} aria-pressed={lang === 'en'} onClick={() => { setLang('en'); }}>EN</button></div>{room && <button className="topbar-link" type="button" onClick={() => { setRulesOpen(true); }}>{t(lang, 'rules')}</button>}<button className="icon-button header-sound" type="button" onClick={() => { audio.toggleMute(); }} title={t(lang, audio.settings.mute ? 'unmute' : 'mute')} aria-label={t(lang, audio.settings.mute ? 'unmute' : 'mute')}>{audio.settings.mute ? '🔇' : '🔊'}</button><button className="icon-button header-settings" type="button" onClick={() => { setSettingsOpen(true); }} aria-label={t(lang, 'settings')}>☷</button></div></header>
+    <header className="topbar"><div className="brand-lockup"><img src={import.meta.env.BASE_URL+'cat-ok.gif'} alt="Logo" className="brand-icon brand-icon-gif" aria-hidden="true" /><span>{t(lang, 'brand')}</span></div><div className="topbar-actions"><button className="topbar-link tutorial-link" type="button" title={t(lang, 'tutorialVideo')} onClick={() => { setTutorialOpen(true); }}><span aria-hidden="true">▶</span> <span className="tutorial-link-label">{t(lang, 'tutorial')}</span></button><button className="topbar-link codex-link" type="button" onClick={() => { setCodexOpen(true); }} style={{ fontWeight: 800 }}>{t(lang, 'cardCodex')} ✦</button><span className={`connection-indicator ${game.connection}`} title={t(lang, game.connection === 'connected' ? 'connected' : game.connection === 'offline' ? 'offline' : 'connecting')}/><div className="language-switch" role="group" aria-label={t(lang, 'language')}><button type="button" className={lang === 'vi' ? 'active' : ''} aria-pressed={lang === 'vi'} onClick={() => { setLang('vi'); }}>VI</button><button type="button" className={lang === 'en' ? 'active' : ''} aria-pressed={lang === 'en'} onClick={() => { setLang('en'); }}>EN</button></div>{room && <button className="topbar-link rules-link" type="button" onClick={() => { setRulesOpen(true); }}>{t(lang, 'rules')}</button>}<button className="icon-button header-sound" type="button" onClick={() => { audio.toggleMute(); }} title={t(lang, audio.settings.mute ? 'unmute' : 'mute')} aria-label={t(lang, audio.settings.mute ? 'unmute' : 'mute')}>{audio.settings.mute ? '🔇' : '🔊'}</button><button className="icon-button header-settings" type="button" onClick={() => { setSettingsOpen(true); }} aria-label={t(lang, 'settings')}>☷</button></div></header>
     {game.connection === 'offline' && <div className="connection-banner" role="status">{t(lang, 'offline')}</div>}
     {error && <div className="error-toast" role="alert"><span>{error}</span><button type="button" onClick={game.dismissError} aria-label={t(lang, 'close')}>×</button></div>}
     {!room && <Entry lang={lang} connection={game.connection} busy={game.busy} createRoom={game.createRoom} joinRoom={game.joinRoom} onOpenCodex={() => setCodexOpen(true)}/>}
@@ -229,6 +231,7 @@ export default function App() {
     {rulesOpen && <RulePanel lang={lang} room={room} onClose={() => setRulesOpen(false)}/>}
     {settingsOpen && <SettingsPanel lang={lang} settings={audio.settings} setSettings={audio.setSettings} enabled={audio.enabled} enable={audio.enable} reduced={reduced} setReduced={setReduced} skip={skip} setSkip={setSkip} onClose={() => setSettingsOpen(false)}/>}
     {codexOpen && <CardCodexModal lang={lang} onClose={() => { audio.stopSfx(); setCodexOpen(false); }} onPlaySfx={audio.playSfx} onStopSfx={audio.stopSfx}/>}
+    {tutorialOpen && <TutorialModal lang={lang} onClose={() => setTutorialOpen(false)}/>}
     {initialLoading && <LobbyLoading lang={lang} context="initial" />}
     {startingMatch && <LobbyLoading lang={lang} context="start" />}
     {!initialLoading && !startingMatch && ((!room && (game.busy || game.connection === 'connecting')) || (room?.status === 'LOBBY' && (game.busy || game.connection === 'connecting'))) && <LobbyLoading lang={lang} context={game.connection === 'connecting' ? 'connecting' : !room ? 'create' : 'ready'}/>}
