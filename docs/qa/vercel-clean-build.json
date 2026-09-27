@@ -1,0 +1,35 @@
+{
+    "recordedAt":  "2026-09-27T13:19:47.8192783Z",
+    "sourceBaseRevision":  "3c67f17147716ef468f88cd0bdec504aac2dc80e",
+    "environment":  {
+                        "checkout":  "Fresh git archive in a new Temp directory; no existing node_modules",
+                        "node":  "24.18.0",
+                        "os":  "Windows",
+                        "npm":  "11.16.0"
+                    },
+    "scopedInstall":  {
+                          "scope":  "Simulation of excluded web workspace; actual Vercel install log unavailable",
+                          "webBuild":  "FAIL",
+                          "command":  "npm ci --workspace=@kittens/shared --include-workspace-root --include=dev",
+                          "error":  "TS2688 missing vite/client",
+                          "sharedBuild":  "PASS"
+                      },
+    "fixedInstall":  {
+                         "NODE_ENV":  "production",
+                         "command":  "npm ci --workspaces --include-workspace-root --include=dev",
+                         "result":  "PASS",
+                         "NPM_CONFIG_OMIT":  "dev",
+                         "packages":  220
+                     },
+    "fixedBuild":  {
+                       "base":  "/",
+                       "server":  "https://beatsync-server.zney295.id.vn",
+                       "command":  "npm run build -w @kittens/shared \u0026\u0026 npm run build -w @kittens/web",
+                       "result":  "PASS",
+                       "socketPath":  "/kittens/socket.io",
+                       "asset":  "index-Ci4ybXM8.js",
+                       "modules":  107
+                   },
+    "actualVercelDeploymentVerified":  false,
+    "productionVercelOriginProvided":  false
+}

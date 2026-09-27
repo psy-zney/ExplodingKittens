@@ -48,7 +48,7 @@ sudo nginx -t
 sudo docker compose ps
 ```
 
-To use Vercel, build the same web sources with `VITE_BASE_PATH=/`, `VITE_SERVER_URL=https://beatsync-server.zney295.id.vn` and `VITE_SOCKET_PATH=/kittens/socket.io`. Add that exact web origin to the comma-separated `CORS_ORIGIN` before recreating the backend container. Guest sessions and unfinished rooms currently live in process memory; recreating the container ends them.
+See [VERCEL.md](VERCEL.md) for the exact Dashboard settings, install command, environment values and build-error diagnosis. To use Vercel, build the same web sources with `VITE_BASE_PATH=/`, `VITE_SERVER_URL=https://beatsync-server.zney295.id.vn` and `VITE_SOCKET_PATH=/kittens/socket.io`. Add that exact web origin to the comma-separated `CORS_ORIGIN` before recreating the backend container. Guest sessions and unfinished rooms currently live in process memory; recreating the container ends them.
 
 ```sh
 python3 deploy/add-origin.py https://your-project.vercel.app

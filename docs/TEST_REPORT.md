@@ -1,3 +1,14 @@
+# Sửa cấu hình Vercel — 2026-09-27
+
+Log người dùng báo TS2307/TS2875: module React/React DOM/plugin React và type chưa được resolve. Dependency đã khai báo trong apps/web/package.json và lockfile. Chưa có install log của deployment để xác định chính xác workspace/omit override trên Vercel.
+
+vercel.json đổi installCommand thành npm ci --workspaces --include-workspace-root --include=dev. Giữ build shared -> web, output apps/web/dist, Root Directory ở gốc repo. Thêm deploy/VERCEL.md và deploy/vercel.env.example với ba VITE ENV trỏ HTTPS VPS / Socket.IO path /kittens/socket.io / web base /.
+
+Kiểm tra trên checkout sạch trong thư mục Temp, không dùng node_modules hiện có của workspace chính: Node24.18.0, npm11.16.0, Windows. Install chỉ workspace shared + root: shared build PASS, web fail thiếu vite/client. Đây là mô phỏng install thiếu package web, không phải khẳng định đúng install command của deployment Vercel.
+
+Cài lại bằng command mới, với NODE_ENV=production và NPM_CONFIG_OMIT=dev: npm ci PASS (220 packages, audit 0 vulnerabilities); build shared và tsc -b + vite build của web PASS. ENV VITE_SERVER_URL=https://beatsync-server.zney295.id.vn, VITE_SOCKET_PATH=/kittens/socket.io, VITE_BASE_PATH=/. 107 modules, JS index-Ci4ybXM8.js, web dist có base /. Kiểm tra UTF-8 PASS. Không đổi engine/server/component để che lỗi type. Artifact: docs/qa/vercel-clean-build.json.
+
+Chưa xác nhận deployment Ready trên tài khoản Vercel; chưa có domain production để thêm exact Origin vào VPS. Hướng dẫn nêu rõ phần CORS và maintenance cần thiết khi recreate backend để áp dụng ENV.
 # Release chọn Cứu Nổ 5 giây và hiệu ứng — 2026-09-27
 
 **Production:** https://beatsync-server.zney295.id.vn/kittens/ · HTTP trực tiếp http://149.118.50.176:9000/kittens/.

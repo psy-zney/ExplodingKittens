@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "installCommand": "npm ci",
+  "installCommand": "npm ci --workspaces --include-workspace-root --include=dev",
   "buildCommand": "npm run build -w @kittens/shared && npm run build -w @kittens/web",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
