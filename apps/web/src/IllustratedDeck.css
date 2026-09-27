@@ -116,3 +116,5 @@
  .showcase-stats span{font-size:.55rem}
  .codex-mini-grid{max-height:290px}
 }
+
+.mode-toggle-group{background:#f0d8cb;border-color:#dcb7a6}.mode-toggle-btn{color:#855951}.mode-toggle-btn.active{background:#fff5eb;color:#512c28!important;border-color:#dcb7a6}
