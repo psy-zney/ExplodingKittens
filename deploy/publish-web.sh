@@ -27,9 +27,13 @@ if test -f /var/www/exxplore-kittens/index.html; then
     sudo -n cp /var/www/exxplore-kittens/index.html "${backup}/index.html"
 fi
 # Keep old hashed assets for already open tabs; publish the new entry last.
-sudo -n cp -a "${stage}/assets/." /var/www/exxplore-kittens/assets/
-sudo -n find /var/www/exxplore-kittens/assets -type d -exec chmod 755 {} +
-sudo -n find /var/www/exxplore-kittens/assets -type f -exec chmod 644 {} +
+# Include unhashed public files (music, sound effects and the mascot), while
+# retaining the previous index until all resources it references are ready.
+while IFS= read -r -d '' resource; do
+    sudo -n cp -a -- "$resource" /var/www/exxplore-kittens/
+done < <(find "$stage" -mindepth 1 -maxdepth 1 ! -name index.html -print0)
+sudo -n find /var/www/exxplore-kittens -type d -exec chmod 755 {} +
+sudo -n find /var/www/exxplore-kittens -type f -exec chmod 644 {} +
 sudo -n install -m 644 "${stage}/index.html" /var/www/exxplore-kittens/index.next.html
 sudo -n mv /var/www/exxplore-kittens/index.next.html /var/www/exxplore-kittens/index.html
 backend_after=$(sudo -n docker inspect --format='{{.Id}} {{.State.StartedAt}}' exxplore-kittens-game-server-1)

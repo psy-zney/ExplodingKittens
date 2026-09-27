@@ -5,7 +5,15 @@ if [ ! -f .env ]; then
     cp deploy/vps.env.example .env
 fi
 sudo -n docker compose config --quiet
-sudo -n docker compose up -d --build game-server
+# Build before checking connections so a slow build cannot silently interrupt
+# an already connected room. Rooms and guest sessions live in this process.
+sudo -n docker compose build game-server
+connections=$(sudo -n ss -Hnt state established '( sport = :3105 )' | wc -l)
+if [ "$connections" -ne 0 ]; then
+    printf '%s\n' "Release stopped: $connections backend connection(s) remain. Finish active rooms before replacing the server." >&2
+    exit 1
+fi
+sudo -n docker compose up -d game-server
 container_id=$(sudo -n docker compose ps -q game-server)
 if [ -z "${container_id}" ]; then
     printf '%s\n' 'Game server container was not created.' >&2

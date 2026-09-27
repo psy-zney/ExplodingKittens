@@ -1,0 +1,107 @@
+{
+  "recordedAt": "2026-09-27T10:34:57.383Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://localhost:5182",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "scenario": "five-second draft and playful effects",
+      "outcome": {
+        "actions": 37,
+        "inserted": [
+          "MIDDLE_HIDDEN",
+          "TOP",
+          "BOTTOM",
+          "TOP"
+        ],
+        "winnerId": "ef6a3c83-5301-4271-98a8-e267cfd55de5",
+        "refreshedTurn": false,
+        "refreshedInsert": false,
+        "translatedDrawChecked": false
+      },
+      "frames": {
+        "samples": 1322,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 33.400000000001455,
+        "maxMs": 1850,
+        "within16_7Percent": 58.16944024205749,
+        "within17Percent": 90.92284417549168
+      }
+    },
+    {
+      "test": "two-player-full-game",
+      "gameId": "a0d8e1f1-32c8-4ee1-a3da-181f82861c26",
+      "nextGameId": "c10a45fc-ceb5-439e-8220-8780e0c413bb",
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "59f9e7b6-229e-4ae6-a7f0-2a3f685f0f07",
+      "refreshedTurn": true,
+      "refreshedInsert": true,
+      "translatedDrawChecked": true,
+      "frames": {
+        "samples": 771,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.800000000000182,
+        "maxMs": 100,
+        "within16_7Percent": 67.96368352788586,
+        "within17Percent": 96.62775616083009
+      }
+    },
+    {
+      "test": "5-player-full-game",
+      "gameId": "d9c78e8c-ddd8-4a81-b7ed-6e04d553c58e",
+      "actions": 28,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM",
+        "TOP",
+        "TOP",
+        "TOP"
+      ],
+      "winnerId": "4415cdfd-80e7-4918-ac80-2fa8de8f465b",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false
+    },
+    {
+      "test": "mobile-emulated-full-game",
+      "viewport": "390 × 844, touch enabled, no CPU throttle",
+      "width": {
+        "viewport": 390,
+        "content": 390
+      },
+      "actions": 41,
+      "inserted": [
+        "MIDDLE_HIDDEN",
+        "TOP",
+        "BOTTOM"
+      ],
+      "winnerId": "e4a7b5c2-e2c9-4ef4-8321-55a825bce2f9",
+      "refreshedTurn": false,
+      "refreshedInsert": false,
+      "translatedDrawChecked": false,
+      "frames": {
+        "samples": 690,
+        "medianMs": 16.69999999999891,
+        "p95Ms": 33.399999999999636,
+        "maxMs": 100.10000000000218,
+        "within16_7Percent": 55.362318840579704,
+        "within17Percent": 92.17391304347827
+      }
+    }
+  ]
+}

@@ -9,3 +9,6 @@ playwright-report
 test-results
 *.log
 deploy/*.tgz
+
+deploy/native-baseline/
+docs/qa/

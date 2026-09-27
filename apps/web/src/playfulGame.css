@@ -38,3 +38,5 @@
 .motion-reduced .draft-card{animation:none}.motion-reduced .draft-progress i{transition:none}
 
 .insertion-receipt{background:#ffdfa7;border:2px solid #be794c;border-radius:9px;color:#6b392c;padding:12px 16px;font-weight:750;font-size:.78rem}
+
+.room-main:has(.effect-explosion,.effect-defuse) .result-cat{opacity:0}.room-main:has(.effect-eliminate) .result-cat{filter:grayscale(1);opacity:.25}

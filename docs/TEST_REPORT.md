@@ -1,3 +1,55 @@
+# Release chọn Cứu Nổ 5 giây và hiệu ứng — 2026-09-27
+
+**Production:** https://beatsync-server.zney295.id.vn/kittens/ · HTTP trực tiếp http://149.118.50.176:9000/kittens/.
+
+## Chốt repository và kiểm tra script phát hành
+
+Ngày 2026-09-27: chạy lại 84 test, typecheck, build production và kiểm tra UTF-8: PASS. Đối chiếu App.tsx, useAudio.ts, playfulGame.css và server.ts trên VPS khớp nguồn local trước phát hành. Bổ sung guard kết nối trước thay backend, cập nhật web sao chép cả public media trước index, và verify-release kiểm tra hash từng GIF/MP3 để tránh SPA fallback trả HTML thay âm thanh. Hai operational test guard (kết nối đang mở / build lỗi) PASS bằng shell stub không chạy lệnh Docker thật. nginx -t, Compose, shell syntax, health/SPA/polling và hash đủ 13 public media PASS trên VPS. QA và bản sao tạm nằm ngoài Docker context. Gói deploy được tạo bằng git archive từ commit đã push, giữ .env hiện có trên VPS.
+
+Production audit dựa trên nguồn/tests/runtime: 82/100, chạy được cho một VPS với giới hạn RAM qua restart và chưa đo điện thoại vật lý. Không phát hiện blocker trong các luồng đã kiểm tra; chưa có bằng chứng CI độc lập. UI có backup index và giữ asset cũ; backend cần maintenance vì rollback image không khôi phục ván RAM. Kết quả browser-results và screenshots được lưu trong Git; báo cáo HTML Playwright là artifact local được ignore.
+## Phạm vi hoàn tất
+
+Mở ván DEALING: sáu Cứu Nổ biểu cảm riêng, chọn trong đủ 5000 ms, khóa first accepted pick, fallback RNG cho người chưa chọn, sau đó mới chia thêm bảy lá. Spectator không chọn, refresh giữ ghế/lựa chọn/deadline, server từ chối chọn trùng/đổi lựa chọn/ID giả/chọn muộn. Bộ cơ bản có sáu Defuse và bốn Boom có metadata biểu cảm ổn định, không đổi tác dụng.
+
+Thanh ném trứng/bom đồ chơi/đá nhỏ chọn người nhận, event đồng bộ phòng, cooldown 1500 ms/session và retry không nhân đôi; không đổi engine/revision/deadline. Sticker/SFX theo chức năng, phản hồi nút/chọn bài, burst nổ/Defuse, gray/K.O. và deal/win. Effect queue ở room shell nên nổ/loại/thắng cuối ván không mất khi results xuất hiện. Có Mute/reduced motion và chữ báo; public insertion chỉ TOP/BOTTOM/MIDDLE_HIDDEN. Thông báo vùng chèn giữ đến hành động tiếp theo; animation giữa vẫn cùng 500 ms và không dùng vị trí riêng.
+
+## Kết quả
+
+| Gate | Kết quả thực tế |
+| --- | --- |
+| npm test | **84 PASS**: engine42, server30, web12. Engine có 96 ván mô phỏng 2–5 người, cả hai bộ bài và hồi sinh; test chọn đúng lá, bảo toàn lá/biểu cảm, race/retry/deadline/reconnect/spectator và đồ chơi không đổi game. |
+| Typecheck / build / UTF-8 | PASS toàn workspace. Docker Node24 production build PASS trên VPS. |
+| UI local | **14 tình huống đã PASS qua các lượt chạy**. Lượt đầy đủ đầu:13/14; một case5 người bỏ lỡ overlay500 ms. Bổ sung thông báo vùng chèn giữ đến hành động kế tiếp, chạy lại4 case gồm5 người:4/4 PASS. Bản UI cuối kiểm tra kho bài và draft/đồ chơi/K.O.:2/2 PASS. Có composer/combo2/3/target/Favor/Nope reconnect/Hamster/autodraw/manual-cancel/full autoplay/rematch. |
+| UI production cuối | **7/7 PASS** trong3,8 phút, Chromium thật153.0.8010.12: kho22 loại/bốn nét; draft mobile3 browser VI/EN, keyboard/touch/reload/fallback/ba đồ chơi; chat VI/EN/unread/escaping/reconnect/fullgame/rematch; chat mobile/focus/offline draft;2 guest+bilingual/audio/Mute/private insert/spectator/reconnect/win/rematch;5 guest hết ván; mobile touch chọn bài/tất cả khe chèn/hết ván. Không có console/page error trong các case. |
+| HTTPS WebSocket | BASE2 và EXTENDED3+hồi sinh: hết ván, snapshot nhất quán, một người thắng, rematch PASS. Transport cưỡng bức websocket, không dùng polling để che lỗi. |
+| HTTP9000 polling | BASE2 và EXTENDED3+hồi sinh: hết ván/sync/win/rematch PASS. Transport cưỡng bức polling, không nâng cấp WS. |
+| Nginx / Docker | nginx -t; shell syntax; Compose config; health/static/SPA/Engine.IO polling; listen9000 và loopback3105 PASS. |
+
+Một lần test production gặp thứ tự xáo hợp lệ với Kitten ở cuối bộ rút, không có khe giữa khả dụng; assertion cũ yêu cầu MIDDLE_HIDDEN vô điều kiện nên fail. Test đã sửa: hoàn thành ván thật rồi rematch khi cần để kiểm tra một lần chèn giữa hợp lệ, không xem/ép thứ tự bộ rút. Lượt production cuối7/7 PASS sau sửa.
+
+## Số đo frame time và giới hạn
+
+Windows11 10.0.26200, Intel i5-12450HX,12 logical CPUs,24GiB RAM; Chromium153 headless. Desktop1440×1000; mobile390×844 cảm ứng giả lập, cùng CPU desktop. Đo khoảng cách callback requestAnimationFrame từ các thao tác ném đồ/rút/chèn bài đến hết ván, gồm các bước chụp ảnh/reconnect. Không phải đo GPU compositor và chưa chạy điện thoại vật lý.
+
+| Kịch bản trên URL production cuối | Mẫu | Median | p95 | ≤16,7 ms | ≤17 ms | Max |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Draft/đồ chơi/3 browser mobile/hết ván |1786|16,7ms|16,8ms|65,34%|99,33%|1333,3ms|
+|2 browser desktop/hết ván|1379|16,7ms|16,8ms|68,67%|96,23%|100ms|
+|Mobile touch/hết ván|777|16,7ms|16,8ms|54,70%|97,81%|50ms|
+
+Có outlier; các số trên không bảo đảm60FPS ổn định hoặc chứng minh hiệu năng điện thoại tầm trung. Luật/timer/reconnect vẫn do server quyết định khi animation tắt. Server hiện một process, RAM: giữ reconnect120s nhưng restart mất ván/session; phòng tối đa5 người.
+
+## Artifact và release
+
+- docs/qa/playful-final-production/browser-results.json, playwright-report và screenshots: bản UI production cuối7/7.
+- docs/qa/playful-final-production/deployment-websocket-smoke.json và deployment-polling-smoke.json: bốn ván transport thật.
+- docs/qa/playful-local và playful-verify: toàn bộ14 case/local rerun; playful-final-local:2 case của UI cuối.
+- docs/qa/playful-motion-artifacts: ảnh lấy từ ván production thật; khi chụp nổ/K.O. chỉ tạm giữ frame CSS đang phát, server/state/queue vẫn chạy.
+- Backend image: abd732e263bf631ee057b9e196e64b8bfb07576196902a997b5ee8f264f78886, healthy, started2026-09-27T10:36:47.882672264Z. Kích hoạt khi số kết nối3105 bằng0; script mới build trước và chặn restart nếu còn kết nối.
+- UI image:8d10c3424a9ce0c04a21bbc91bc8b8809c300dd6aefefc8698f5f308a1689d31; frontend-only publish sau đó giữ nguyên backend và thời điểm chạy.
+- JS index-C8DA8-y7.js:486,05kB/gzip147,50kB, SHA256 c327597bccc4619e69c17d5a0c35624decd92a71353d435418f39ece6c22d406. CSS index-D0u15B9Y.css101,31kB/gzip22,12kB.
+- Nginx vẫn phục vụ beatsync hiện có, /kittens/ tại gateway9000; giữ .env trên VPS. Header/preload/audio dùng BASE_URL, không gọi nhầm asset ở root.
+
 # Kết quả kiểm thử và triển khai
 
 ## Một bộ bài phối bốn nét vẽ — 2026-09-27

@@ -1,3 +1,14 @@
+# Trạng thái mới nhất: release chọn mèo/đồ chơi đã hoàn tất
+
+Live: https://beatsync-server.zney295.id.vn/kittens/ và HTTP149.118.50.176:9000/kittens/.
+84 unit/integration PASS;14 case local đã qua qua các lượt chạy; UI production cuối7/7 PASS. HTTPS forcedWS và HTTP9000 forcedpolling chơi BASE2/EXTENDED3+hồi sinh, win/sync/rematch PASS. Xem phần đầu TEST_REPORT và docs/qa/playful-final-production; ảnh motion tại playful-motion-artifacts.
+
+Backend hiện image abd732e…, started2026-09-27T10:36:47.882672264Z; UI image8d10c342…/JS index-C8DA8-y7.js. Không restart backend cho sửa UI tương thích. Full start-release đã thêm guard kết nối3105 sau build. Giữ Nginx beatsync/.env. Các server schemas/engine nguồn trên VPS khớp local; không dùng frontend-only nếu đổi giao thức.
+
+Latest App nhận các sửa preloader/stopSfx đã có trong workspace; đã sửa GIF/audio theo BASE_URL và kiểm tra kho/draft/đồ chơi trên mobile, refresh trong5s. CSS tránh lẫn lá Defuse trang kết quả với scene Boom. Test privacy rematch ván thật nếu Kitten ban đầu ở cuối pile, không ép secret deck.
+
+Không còn việc bắt buộc của lượt chọn Cứu Nổ5s. Các việc tương lai: đo điện thoại vật lý/compositor, lưu room/session bền vững nếu chạy nhiều process. Hiện2–5 seats; không khẳng định25 seats hoặc60FPS điện thoại. deploy/native-baseline là bản sao tạm nằm ngoài gói release, được ignore; không dùng làm nguồn chính. Không chạy hay sửa resume_codex scripts và không đọc SSH key. Không có kết nối tool AGY tự động được xác nhận trong lượt này; đây là handoff trên filesystem cho phiên tiếp theo.
+
 ## Chọn Cứu Nổ 5 giây và hiệu ứng — đang kiểm tra release
 
 Contract đầu RULE_CONTRACT/ARCHITECTURE: DEALING trước PLAYING, sáu Defuse biểu cảm riêng, first accepted pick, đủ 5000 ms, fallback RNG, createGame.defuseChoices giữ lá rồi chia bảy. Socket thêm room:choose-defuse/room:throw. Release này đổi backend, phải full deploy.

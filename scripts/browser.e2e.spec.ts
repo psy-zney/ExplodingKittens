@@ -307,8 +307,13 @@ test('five-second rescue draft: distinct cats, touch and keyboard picks, reconne
   await expect(peer.page.locator('.history-details')).toContainText('threw a Pebble');
   const outcome=await finishByDrawing(clients);
   await expect(host.page.locator('[data-effect-kind=explosion]')).toBeVisible();
+  await expect(host.page.locator('[data-effect-kind=explosion] .effect-cat [data-card-type=EXPLODING_KITTEN]')).toBeVisible();
+  // Pause the current real visual frame for an artifact; server state and the
+  // effect queue keep advancing. Without this, a screenshot may catch fade-out.
+  await host.page.evaluate(()=>document.querySelector('[data-effect-kind=explosion]')?.getAnimations({subtree:true}).forEach(animation=>{animation.pause();animation.currentTime=300;}));
   await host.page.screenshot({path:path.join(artifacts,'screenshots/final-boom.png'),fullPage:true});
   await expect(host.page.locator('[data-eliminated-effect]')).toBeVisible();
+  await host.page.evaluate(()=>document.querySelector('[data-effect-kind=eliminate]')?.getAnimations({subtree:true}).forEach(animation=>{animation.pause();animation.currentTime=250;}));
   await host.page.screenshot({path:path.join(artifacts,'screenshots/final-ko.png'),fullPage:true});
   await expect(host.page.locator('[data-effect-kind=win]')).toBeVisible();
   results.push({scenario:'five-second draft and playful effects',outcome,frames:await frameResults(host.page)});
@@ -485,7 +490,18 @@ test('two independent guests: VI/EN, mixed illustrations, audio, private insert,
     for (const p of c.snapshot.game.public.players) expect(p).not.toHaveProperty('hand');
   }
   await beginFrames(host.page);
-  const played = await finishByDrawing(clients, { spectator, reconnect: true, screenshot: true });
+  let played = await finishByDrawing(clients, { spectator, reconnect: true, screenshot: true });
+  const games = [{ gameId, ...played }];
+  // A truly shuffled first Kitten may be at the last one or two slots. Finish
+  // that legitimate game, then rematch to exercise a legal middle insertion.
+  // Never inspect or rig the production draw order to force this coverage.
+  for (let extra = 0; extra < 3 && !played.inserted.includes('MIDDLE_HIDDEN'); extra++) {
+    await host.page.getByRole('button', { name: /Chơi lại/ }).click();
+    await Promise.all(clients.map(c => expect(c.page.locator('.lobby-layout')).toBeVisible()));
+    const extraId = await start(clients);
+    played = await finishByDrawing(clients, { spectator, reconnect: true, screenshot: true });
+    games.push({ gameId: extraId, ...played });
+  }
   const frames = await frameResults(host.page);
   await host.page.screenshot({ path: path.join(artifacts, 'screenshots/results.png'), fullPage: true });
   expect(played.inserted).toContain('MIDDLE_HIDDEN');
@@ -496,7 +512,8 @@ test('two independent guests: VI/EN, mixed illustrations, audio, private insert,
   const nextGameId = await start(clients);
   expect(nextGameId).not.toBe(gameId);
   for (const c of [...clients, spectator]) expect(c.errors).toEqual([]);
-  results.push({ test: 'two-player-full-game', gameId, nextGameId, ...played, frames });
+  expect(nextGameId).not.toBe(games.at(-1)!.gameId);
+  results.push({ test: 'two-player-full-game', gameId:games.at(-1)!.gameId, firstGameId:gameId, games, nextGameId, ...played, frames });
   await Promise.all([...clients, spectator].map(c => c.context.close()));
 });
 

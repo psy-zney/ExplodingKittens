@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-09-27T10:49:26.326Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "https://beatsync-server.zney295.id.vn/kittens/",
+  "headless": true,
+  "tracingEnabled": false,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450HX",
+    "logicalCpus": 12,
+    "ramGiB": 24
+  },
+  "scope": "Real headless Chromium; mobile viewport emulation on the same desktop CPU. Frame values are requestAnimationFrame callback intervals. No physical phone or GPU compositor measurement.",
+  "results": [
+    {
+      "scenario": "five-second draft and playful effects",
+      "outcome": {
+        "actions": 35,
+        "inserted": [
+          "MIDDLE_HIDDEN",
+          "TOP",
+          "BOTTOM"
+        ],
+        "winnerId": "ab0386a9-9f93-4f99-8de8-b4e6f31207e9",
+        "refreshedTurn": false,
+        "refreshedInsert": false,
+        "translatedDrawChecked": false
+      },
+      "frames": {
+        "samples": 1361,
+        "medianMs": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "maxMs": 50,
+        "within16_7Percent": 69.65466568699486,
+        "within17Percent": 99.33872152828802
+      }
+    }
+  ]
+}
