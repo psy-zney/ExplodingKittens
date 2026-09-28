@@ -36,7 +36,7 @@ const kinds: Record<string, EffectKind> = {
   'player.eliminated':'eliminate','room.started':'start','social.thrown':'toss',
 };
 const durations: Record<EffectKind, number> = {
-  draw: 380, play: 360, attack: 360, nope: 300, shuffle: 480, explosion: 520,
+  draw: 380, play: 360, attack: 360, nope: 300, shuffle: 900, explosion: 520,
   defuse: 480, steal: 420, peek: 300, revive: 420, win: 480,
   eliminate:550,start:550,toss:650,
 };
@@ -52,6 +52,7 @@ export function describeEffects(events: readonly GameEvent[], selfId?: string): 
     const targetId = typeof p.targetId === 'string' ? p.targetId : undefined;
     let card: Card | undefined;
     if (kind === 'play' && typeof p.cardType === 'string') card = { instanceId: `effect:${event.seq}`, type: p.cardType as CardType };
+    if (kind === 'nope') card = { instanceId: `effect:${event.seq}`, type: 'NOPE' };
     if (kind === 'explosion' || kind === 'defuse') card = { instanceId: `effect:${event.seq}`, type: kind==='defuse'?'DEFUSE':'EXPLODING_KITTEN',artVariant:typeof p.artVariant==='number'?p.artVariant:0 };
     if ((kind === 'draw' && playerId === selfId) || (kind === 'steal' && targetId === selfId)) {
       const privateKey = kind === 'draw' ? 'card.drawn.private' : 'card.received';

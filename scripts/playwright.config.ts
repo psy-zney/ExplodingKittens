@@ -5,7 +5,7 @@ const artifacts = path.resolve(process.env.QA_ARTIFACT_DIR ?? 'docs/qa');
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'browser.e2e.spec.ts',
+  testMatch: '*e2e.spec.ts',
   timeout: 180_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

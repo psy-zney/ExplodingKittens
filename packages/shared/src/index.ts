@@ -21,6 +21,11 @@ export const phases = [
 export type GamePhase = typeof phases[number];
 export const phaseSchema = z.enum(phases);
 
+export const GAME_TIMING = { turnMs: 45_000, nopeMs: 12_000, choiceMs: 30_000 } as const;
+export function phaseDurationMs(phase: GamePhase): number {
+  return phase === 'FINISHED' ? 0 : phase === 'TURN' ? GAME_TIMING.turnMs : phase === 'NOPE_WINDOW' ? GAME_TIMING.nopeMs : GAME_TIMING.choiceMs;
+}
+
 const playCardActionSchema = z.object({
   type: z.literal('PLAY_CARD'),
   cardIds: z.array(z.string().min(1)).min(1).max(3),
@@ -133,7 +138,7 @@ export function calculateDeckScaling(playerCount: number, mode: GameMode = 'BASE
   const extraDefusesInDeck = count >= 5 ? 1 : 2;
   const totalDefusesInGame = startingDefuses + extraDefusesInDeck;
   const baseOtherCards = 46;
-  const expansionCards = mode === 'EXTENDED' ? 8 : 0;
+  const expansionCards = mode === 'EXTENDED' ? 24 : 0;
   const resurrectionCards = resurrection ? 2 : 0;
   const otherCards = baseOtherCards + expansionCards + resurrectionCards;
   const totalDeckCards = otherCards + totalDefusesInGame + activeKittens;

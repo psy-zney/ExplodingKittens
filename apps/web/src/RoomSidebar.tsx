@@ -15,8 +15,10 @@ function ChatIcon() {
 }
 
 function RoomChat({ lang, room, selfId, messages, online, busy, send }: Omit<Props, 'game' | 'events'>) {
-  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width:850px)').matches);
-  const [open, setOpen] = useState(() => !window.matchMedia('(max-width:850px)').matches);
+  const compact = room.status === 'PLAYING';
+  const [smallScreen, setSmallScreen] = useState(() => window.matchMedia('(max-width:850px)').matches);
+  const mobile = compact || smallScreen;
+  const [open, setOpen] = useState(() => !compact && !window.matchMedia('(max-width:850px)').matches);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -30,10 +32,11 @@ function RoomChat({ lang, room, selfId, messages, online, busy, send }: Omit<Pro
   const panelRef = useModalFocus(open && mobile);
   const unread = messages.filter(message => message.seq > seenSeq && message.params?.playerId !== selfId).length;
   const timeFormat = new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+  useEffect(() => { if (compact) setOpen(false); }, [compact]);
 
   useEffect(() => {
     const query = window.matchMedia('(max-width:850px)');
-    const change = () => setMobile(query.matches);
+    const change = () => setSmallScreen(query.matches);
     query.addEventListener('change', change);
     return () => query.removeEventListener('change', change);
   }, []);
@@ -67,7 +70,7 @@ function RoomChat({ lang, room, selfId, messages, online, busy, send }: Omit<Pro
   }
 
   return <div className={`room-chat ${open ? 'is-open' : ''}`}>
-    <button ref={triggerRef} className="room-chat-trigger" type="button" aria-expanded={open} aria-controls="room-chat-panel" onClick={() => { setAtBottom(true); setOpen(true); }}>
+    <button ref={triggerRef} className="room-chat-trigger" type="button" aria-expanded={open} aria-controls="room-chat-panel" onClick={() => { if (open) close(); else { setAtBottom(true); setOpen(true); } }}>
       <ChatIcon/><span>{t(lang, 'chat')}</span>{unread > 0 && <span className="chat-unread" aria-label={t(lang, 'chatUnread', { count: unread })}>{unread > 99 ? '99+' : unread}</span>}
     </button>
     {open && mobile && <div className="room-chat-backdrop" onClick={close} aria-hidden="true"/>}
@@ -99,7 +102,7 @@ function GameHistory({ lang, room, game, events }: Pick<Props, 'lang' | 'room' |
   const logs = (events.length ? events : game.log ?? []).filter(event => event.visibility !== 'SERVER_ONLY' && event.key !== 'event.hidden' && event.key !== 'chat.message').slice(-50);
   const latestSeq = logs.at(-1)?.seq;
   useEffect(() => { if (following.current && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [latestSeq]);
-  return <div className="history-panel"><details open className="history-details"><summary>{t(lang, 'eventLog')} <span>{logs.length}</span></summary><ol ref={listRef} aria-live="polite" aria-relevant="additions text" onScroll={event => { const list = event.currentTarget; following.current = list.scrollHeight - list.scrollTop - list.clientHeight < 40; }}>{logs.map(event => <li key={event.seq}><span className="log-tick">{String(event.seq).padStart(2, '0')}</span><span>{eventText(lang, event, [...game.players, ...room.players])}</span></li>)}</ol></details></div>;
+  return <div className="history-panel"><details className="history-details"><summary aria-label={t(lang, 'eventLog')} title={t(lang, 'eventLog')}>{t(lang, 'eventLog')} <span>{logs.length}</span></summary><ol ref={listRef} aria-live="polite" aria-relevant="additions text" onScroll={event => { const list = event.currentTarget; following.current = list.scrollHeight - list.scrollTop - list.clientHeight < 40; }}>{logs.map(event => <li key={event.seq}><span className="log-tick">{String(event.seq).padStart(2, '0')}</span><span>{eventText(lang, event, [...game.players, ...room.players])}</span></li>)}</ol></details></div>;
 }
 
 export function RoomSidebar(props: Props) {

@@ -3,6 +3,18 @@ import type { Card, GameAction, PrivateGame, PublicGame } from './types';
 
 export type ComposeMode = 'SINGLE' | 'PAIR' | 'TRIPLE' | 'PLUS_PLUS';
 export type AutoMode = 'OFF' | 'DRAW' | 'BASIC';
+// Direct hand selection: matching cards form pairs/triples; ++ joins numeric cards.
+export function selectHandCard(previous: string[], card: Card, hand: Card[], mandatory = false): string[] {
+  if (previous.includes(card.instanceId)) return previous.filter(id => id !== card.instanceId);
+  if (mandatory) return [card.instanceId];
+  const first = hand.find(item => item.instanceId === previous[0]);
+  if (!first) return [card.instanceId];
+  if (first.type === card.type && card.type !== 'EXPLODING_KITTEN') {
+    return previous.length < 3 ? [...previous, card.instanceId] : previous;
+  }
+  if (previous.length === 1 && ((first.type === 'PLUS_PLUS' && isNumericCard(card.type)) || (card.type === 'PLUS_PLUS' && isNumericCard(first.type)))) return [...previous, card.instanceId];
+  return [card.instanceId];
+}
 export function selectCard(previous: string[], card: Card, hand: Card[], mode: ComposeMode, mandatory = false): string[] {
   if (previous.includes(card.instanceId)) return previous.filter(id => id !== card.instanceId);
   if (mandatory || mode === 'SINGLE') return [card.instanceId];

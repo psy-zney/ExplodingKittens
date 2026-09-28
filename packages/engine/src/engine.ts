@@ -1,13 +1,14 @@
 import type { Card, CardType, GameAction, GameEvent } from '@kittens/shared';
+import { GAME_TIMING } from '@kittens/shared';
 import { inspectPlay } from '@kittens/shared/play-policy';
 import { makeDeck, randomIndex, secureRandom, shuffle } from './deck.js';
 import { assertInvariants } from './snapshot.js';
 import { GameError } from './types.js';
 import type { CreateGameOptions, GameState, GameTransition, Pending, PlayerState, PlayIntent, RandomSource } from './types.js';
 
-export const TURN_MS=30_000;
-export const NOPE_MS=7_000;
-export const CHOICE_MS=20_000;
+export const TURN_MS=GAME_TIMING.turnMs;
+export const NOPE_MS=GAME_TIMING.nopeMs;
+export const CHOICE_MS=GAME_TIMING.choiceMs;
 
 function fail(code:string):never { throw new GameError(code); }
 function person(state:GameState,id:string):PlayerState {
@@ -376,7 +377,7 @@ export function applyAction(original:GameState,playerId:string,action:GameAction
       const intent=makeIntent(state,actor,action);
       for(const card of intent.cards){removeOwned(actor,card.instanceId);state.discardPile.push(card);}
       setPhase(state,'NOPE_WINDOW',{kind:'NOPE_WINDOW',intent,nopeCount:0,passedPlayerIds:[]},now+NOPE_MS);
-      emit(state,events,'card.played',{playerId,cardType:primaryType(intent),count:intent.cards.length});
+      emit(state,events,'card.played',{playerId,cardType:primaryType(intent),count:intent.cards.length,playKind:intent.kind});
       break;
     }
     case 'NOPE':{

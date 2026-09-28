@@ -55,7 +55,7 @@ export function preloadAllMemeAudios(context: AudioContext) {
   }
 }
 const STORAGE_KEY = 'kittens.audio';
-const DEFAULT: AudioSettings = { master: 0.7, music: 0.45, sfx: 0.75, mute: false };
+const DEFAULT: AudioSettings = { master: 0.55, music: 0.3, sfx: 0.45, mute: false };
 
 function readSettings(): AudioSettings {
   try {
@@ -513,7 +513,7 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     const initialMaster = settings.mute ? 0 : settings.master;
     masterGain.gain.setValueAtTime(initialMaster, context.currentTime);
     musicGain.gain.setValueAtTime(settings.music, context.currentTime);
-    sfxGain.gain.setValueAtTime(settings.sfx, context.currentTime);
+    sfxGain.gain.setValueAtTime(settings.sfx * 0.55, context.currentTime);
     duckGain.gain.setValueAtTime(1, context.currentTime);
 
     const state: SoundState = {
@@ -567,7 +567,7 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
     const master = settings.mute ? 0 : settings.master;
     state.masterGain.gain.setTargetAtTime(master, now, 0.03);
     state.musicGain.gain.setTargetAtTime(settings.music * (document.hidden ? 0 : 1), now, 0.05);
-    state.sfxGain.gain.setTargetAtTime(settings.sfx, now, 0.03);
+    state.sfxGain.gain.setTargetAtTime(settings.sfx * 0.55, now, 0.03);
   }, [settings]);
 
   /** Chuyển đổi chế độ nhạc BGM giữa Sảnh (lobby) và Bàn chơi (game) */

@@ -12,7 +12,7 @@ Game bài nhiều người chơi theo thời gian thực, 2–5 người mỗi p
 
 **Chơi ngay:** [Game production trên VPS](https://beatsync-server.zney295.id.vn/kittens/). Nginx trên `vps-cong` phục vụ tại `http://localhost:9000/kittens/`; HTTP trực tiếp tại [cổng 9000](http://149.118.50.176:9000/kittens/). Backend chỉ bind `127.0.0.1:3105`, qua proxy `/kittens/socket.io/`. Ván 2–5 người đã được kiểm tra bằng nhiều Chromium thật trên URL production.
 
-Các nét bút bi, giấy đóng dấu, pixel và hình học là SVG/CSS nguyên bản. Không sao chép artwork hoặc hình minh họa từ bộ bài thương mại. Bộ 56 lá và lượt cơ bản tham khảo [hướng dẫn Original Edition](https://www.explodingkittens.com/pages/rules-kittens) và [field guide chính thức](https://www.explodingkittens.com/pages/comprehensive-field-guide). Tám lá thêm và Hồi Sinh là **quy tắc mở rộng của ứng dụng**, được ghi cụ thể trong [rule contract](docs/RULE_CONTRACT.md) và bảng luật ở lobby; không được trình bày như luật gốc.
+Các nét bút bi, giấy đóng dấu, pixel và hình học là SVG/CSS nguyên bản. Không sao chép artwork hoặc hình minh họa từ bộ bài thương mại. Bộ 56 lá và lượt cơ bản tham khảo [hướng dẫn Original Edition](https://www.explodingkittens.com/pages/rules-kittens) và [field guide chính thức](https://www.explodingkittens.com/pages/comprehensive-field-guide). Tám loại lá thêm (mỗi loại ba lá) và Hồi Sinh là **quy tắc mở rộng của ứng dụng**, được ghi cụ thể trong [rule contract](docs/RULE_CONTRACT.md) và bảng luật ở lobby; không được trình bày như luật gốc.
 
 ## Bộ bài minh họa chung
 
@@ -69,10 +69,16 @@ Khung chat riêng có trong lobby, bàn chơi và màn kết quả. Desktop hi�
 
 Server giữ 100 tin gần nhất của từng phòng, độc lập nhật ký hành động, để phục hồi sau reconnect và giữ khi chơi lại. Người xem và người bị loại vẫn có thể chat. Chỉ thành viên của phòng nhận tin; danh tính người gửi lấy từ guest session. Nội dung được render như văn bản, có validation và rate limit. Bản nháp không mất khi thu gọn, chuyển màn, gửi thất bại hoặc mất kết nối trong trang đang mở. Phòng, lịch sử và session hiện lưu trong RAM, nên restart server sẽ mất chúng.
 
+## Bàn chơi một màn hình
+
+Bàn chơi dùng nền đỏ rượu, giao diện xanh đậm và logo mèo riêng. Chạm từng lá để chọn; lá nhấc lên với viền vàng. Chọn hai/ba lá cùng tên tự nhận diện combo, chọn ++ với lá số tự nhận diện tăng chức năng. Chạm avatar đối thủ để chọn mục tiêu; bộ ba có danh sách gọi tên bài gọn. Đánh/Rút nằm ngay trên tay bài. Xếp bài, chọn/bỏ chọn, mở menu và xem gợi ý chạy trên client, không gửi yêu cầu lên server.
+
+Chat, lịch sử, đồ chơi, trợ giúp và tự chơi được thu gọn; cài đặt, kho bài, hướng dẫn, ngôn ngữ và rời phòng nằm trong Menu. Mã phòng mới là chuỗi sáu chữ số (giữ số 0 đầu); server vẫn nhận link phòng cũ khi nâng cấp. Ping là độ trễ khứ hồi đo mỗi 15 giây, tạm dừng khi tab ẩn. Khi đánh bài có thông báo chức năng ngắn; Xáo bài chỉ xáo hai chồng tại bộ rút khi hiệu lực được server xác nhận sau cửa sổ Nope. Giảm chuyển động giữ thông báo tĩnh. Âm lượng SFX mặc định thấp hơn và mức gain giảm cho cả tùy chọn đã lưu.
+
 ## Điều khiển và hỗ trợ người mới
 
-- Chọn cách đánh **lá chức năng / cặp / bộ ba / ++**, sau đó chọn lá. Lá đơn thay thế lựa chọn cũ; nhóm ghép chỉ nhận cùng tên, ++ chỉ đi với lá có giá trị số. Nút chọn người hiện tên, số bài và dấu xác nhận. Bộ ba có bảng gọi tên bài riêng. Xem lại tóm tắt rồi bấm Đánh bài.
-- Viền chấm đánh dấu lá chọn được trong cách đánh hiện tại. Viền xanh và nhãn **Gợi ý** đề xuất xem tương lai, tránh mèo nổ đã được xem hoặc ghép bài mèo. Gợi ý chỉ dùng snapshot của người chơi, không biết bộ rút thật hay bài đối thủ; không bảo đảm thắng.
+- Chạm trực tiếp từng lá; cặp, bộ ba và ++ được nhận diện từ các lá đã chọn. Lá đơn thay thế lựa chọn cũ; nhóm ghép chỉ nhận cùng tên, ++ chỉ đi với lá có giá trị số. Nút chọn người hiện tên, số bài và dấu xác nhận. Bộ ba có bảng gọi tên bài riêng. Xem lại tóm tắt rồi bấm Đánh bài.
+- Lá được chọn nhấc lên với viền vàng. Menu **Trợ giúp & tự chơi** đề xuất xem tương lai, tránh mèo nổ đã được xem hoặc ghép bài mèo. Gợi ý chỉ dùng snapshot của người chơi, không biết bộ rút thật hay bài đối thủ; không bảo đảm thắng.
 - Các bước Xin bài, Dơi và Hamster chỉ chọn đúng một lá mỗi lần. Hamster hiển thị số lá còn phải bỏ. Hướng dẫn nhanh có ngay trên bàn, dịch VI/EN độc lập.
 - Đồng hồ và thanh thời gian dùng `serverNow` để bù lệch giờ trình duyệt. Mỗi phase ghi rõ người cần trả lời và fallback khi hết giờ. Trạng thái đã bỏ qua Nope giữ được sau reconnect.
 - **Tự chơi tắt mặc định mỗi ván**: tự rút khi còn 5 giây hoặc tự chơi cơ bản. Cơ bản ưu tiên xem tương lai, tránh nổ đã biết, ghép bài mèo; giữ Cứu nổ, bỏ qua Nope, chọn bài ít giá trị cho quyết định bắt buộc, chèn xuống đáy và chọn Búa. Mỗi lượt tối đa ba hành động đánh trước khi rút. Bấm một lá để dừng. Tự chơi chỉ chạy ở tab đang hiện và kết nối; mọi ý định vẫn phải qua validation của server. Chơi lại đặt về Tắt. Đây là tính năng hỗ trợ của ứng dụng.
@@ -101,9 +107,9 @@ Không bật `QA_FIXTURES` khi kiểm tra URL production. Ba kiểm tra cần ch
 
 | Chế độ | Số lá trước khi chia | Thêm vào |
 | --- | ---: | --- |
-| Cơ bản (mặc định) | 56 | Luật lượt cơ bản, cặp/ba lá, Nope. |
-| Mở rộng | 64 | Amateur Archaeology, Battle Hamster, Creepy Peeky, Hip Bat, Hip Cat, Plus Plus, Robin Hood, The Twins; mỗi loại một lá. |
-| Hồi Sinh tùy chọn (mặc định tắt) | +2 | Hai lá Hồi Sinh do ứng dụng thiết kế, không nằm trong bộ 56/64. |
+| Cơ bản | 56 | Luật lượt cơ bản, cặp/ba lá, Nope. |
+| Mở rộng (mặc định) | 80 | Amateur Archaeology, Battle Hamster, Creepy Peeky, Hip Bat, Hip Cat, Plus Plus, Robin Hood, The Twins; mỗi loại ba lá. |
+| Hồi Sinh tùy chọn (mặc định tắt) | +2 | Hai lá Hồi Sinh do ứng dụng thiết kế, không nằm trong bộ 56/80. |
 
 Mỗi ván bắt đầu với một Defuse và bảy lá khác cho mỗi người; số lá Mèo Nổ trong bộ rút bằng số người chơi trừ một. Sau Defuse, người chèn tự chọn khe 0..N; những người khác chỉ biết `TOP`, `BOTTOM` hoặc `MIDDLE_HIDDEN`. Các quyết định hết giờ do server giải quyết. Bảng đầy đủ, gồm trường hợp thiếu bài, mất kết nối và quyền xem, nằm ở [docs/RULE_CONTRACT.md](docs/RULE_CONTRACT.md).
 

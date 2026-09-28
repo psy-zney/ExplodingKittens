@@ -52,6 +52,7 @@ All inbound messages use an acknowledgement callback returning `{ok:true,...}` o
 | Client event | Payload | Purpose |
 | --- | --- | --- |
 | `session:open` | `{token?,nickname?}` | Create or resume a random guest token; token stays in this browser. |
+| `connection:ping` | `{}` | Return `serverNow` for RTT measurement and midpoint clock calibration; does not change room state or emit snapshots. |
 | `room:create` | `{options?}` | Create lobby and join as host. |
 | `room:join` | `{roomCode}` | Take or reclaim an available seat. |
 | `room:watch` | `{roomCode}` | Join as spectator. |
@@ -65,6 +66,8 @@ All inbound messages use an acknowledgement callback returning `{ok:true,...}` o
 | `game:action` | `{gameId,turnId,actionId,expectedRevision,action}` | Submit one game intent. |
 
 The server emits `room:snapshot` after joining and state changes, and `room:event` with sequence and revision for short animation/log playback. A client that sees a sequence gap calls `room:sync`. Retries of the same `actionId` return the earlier result. Different concurrent intents for one room are queued and checked against current revision/turn. Socket delivery alone is not treated as durable; reconnect resumes from a filtered snapshot.
+
+New room codes contain six digits, including leading zeroes; existing alphanumeric invites remain accepted. Card selection, sorting, target selection, requested card type, menus and audio settings stay local. The browser measures ping on connection and every 15 seconds while visible, without taking the game action lock. Game intents still require server validation. Public `card.played` includes `playKind` so localized notices describe pairs, triples and ++ correctly; effect playback only uses fresh live events.
 
 The Engine.IO handshake checks an exact origin allowlist for HTTP polling and WebSocket. Native clients without an Origin header are allowed but still require a guest session and valid room/action authorization. An expired server deadline resolves before a late game packet is validated, independent of the periodic timer interval. Changing room rules clears readiness; starting requires every seat to be connected and ready. After 120 seconds without the host, an online player receives host control; in-game seats are retained for reconnect.
 

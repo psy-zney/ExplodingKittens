@@ -59,14 +59,14 @@ const CARD_COUNTS: Record<CardType, { count: string; noteVi: string; noteEn: str
   CAT_RAINBOW: { count: '4 lá', noteVi: 'Mèo thường, dùng để ghép combo 2/3 lá', noteEn: 'Standard cat, used for 2/3 card combos' },
   CAT_POTATO: { count: '4 lá', noteVi: 'Mèo thường, dùng để ghép combo 2/3 lá', noteEn: 'Standard cat, used for 2/3 card combos' },
   CAT_CATERMELON: { count: '4 lá', noteVi: 'Mèo thường, dùng để ghép combo 2/3 lá', noteEn: 'Standard cat, used for 2/3 card combos' },
-  AMATEUR_ARCHAEOLOGY: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  BATTLE_HAMSTER: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  CREEPY_PEEKY: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  HIP_BAT: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  HIP_CAT: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  PLUS_PLUS: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  ROBIN_HOOD: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
-  THE_TWINS: { count: '1 lá', noteVi: 'Bộ mở rộng (Chế độ Mở Rộng 64 lá)', noteEn: 'Expansion card (64-card Extended mode)' },
+  AMATEUR_ARCHAEOLOGY: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  BATTLE_HAMSTER: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  CREEPY_PEEKY: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  HIP_BAT: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  HIP_CAT: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  PLUS_PLUS: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  ROBIN_HOOD: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
+  THE_TWINS: { count: '3 lá', noteVi: 'Bộ mở rộng 80 lá · có thể ghép cặp / bộ ba', noteEn: '80-card expanded deck · can form pairs / triples' },
   RESURRECTION: { count: '2 lá', noteVi: 'Lá bài tùy chọn khi bật chế độ Hồi Sinh', noteEn: 'Optional card added when Resurrection is enabled' }
 };
 

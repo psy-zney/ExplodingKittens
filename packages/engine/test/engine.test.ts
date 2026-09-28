@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Card, CardType, GameAction } from '@kittens/shared';
+import { calculateDeckScaling, type Card, type CardType, type GameAction } from '@kittens/shared';
 import { applyAction, assertInvariants, createGame, makeDeck, getPrivateSnapshot, getPublicSnapshot, getSpectatorSnapshot, tick, type GameState } from '../src/index.js';
 
 const rng=()=>0.37;
@@ -42,6 +42,29 @@ function play(state:GameState,id:string,types:CardType[],targetId?:string,reques
 }
 
 describe('base setup and core rules',()=>{
+  it('waits for the longer deadlines and resets the timer at each response step',()=>{
+    let state=game();
+    expect(state.deadlineAt).toBe(45000);
+    expect(tick(state,44999,rng)).toBeNull();
+    const favor=give(state,'a','FAVOR');
+    state=act(state,'a',{type:'PLAY_CARD',cardIds:[favor.instanceId],targetId:'b'});
+    expect(state.deadlineAt).toBe(12100);
+    expect(tick(state,12099,rng)).toBeNull();
+    state=tick(state,12100,rng)!.state;
+    expect(state.phase).toBe('FAVOR_CHOICE');
+    expect(state.deadlineAt).toBe(42100);
+    expect(tick(state,42099,rng)).toBeNull();
+    state=tick(state,42100,rng)!.state;
+    expect(state.phase).toBe('TURN');
+    expect(state.deadlineAt).toBe(87100);
+    assertInvariants(state);
+  });
+  it.each([2,3,4,5])('reports the actual active deck size for %i players in either mode', count => {
+    for (const mode of ['BASE','EXTENDED'] as const) for (const resurrection of [false,true]) {
+      const state = game(count,mode,resurrection);
+      expect(calculateDeckScaling(count,mode,resurrection).totalDeckCards).toBe(state.totalCards-state.removed.length);
+    }
+  });
   it('gives every physical Defuse and Boom a stable distinct expression',()=>{
     for(const [type,count] of [['DEFUSE',6],['EXPLODING_KITTEN',4]] as const){
       const cards=makeDeck('BASE',false).filter(c=>c.type===type);
@@ -59,7 +82,7 @@ describe('base setup and core rules',()=>{
       expect(p.hand[0]).toEqual(defuses[i]);
       expect(p.hand.slice(1).every(c=>c.type!=='DEFUSE'&&c.type!=='EXPLODING_KITTEN')).toBe(true);
     });
-    expect(state.deadlineAt).toBe(35000);
+    expect(state.deadlineAt).toBe(50000);
     assertInvariants(state);
   });
   it('rejects colliding, foreign or non-Defuse draft choices',()=>{
@@ -269,8 +292,11 @@ describe('application expansion and resurrection',()=>{
     expect(()=>act(state,'b',{type:'PLAY_CARD',cardIds:[card.instanceId],targetId:'a'})).toThrow('GAME_FINISHED');
     expect(state).toEqual(finished);
   });
-  it('64-card deck adds exactly eight unique extension cards',()=>{
-    const state=game(3,'EXTENDED');expect(state.totalCards).toBe(64);assertInvariants(state);
+  it('80-card deck adds three of each extension with unique physical IDs',()=>{
+    const deck=makeDeck('EXTENDED');
+    const state=game(3,'EXTENDED');expect(state.totalCards).toBe(80);assertInvariants(state);
+    for(const type of ['AMATEUR_ARCHAEOLOGY','BATTLE_HAMSTER','CREEPY_PEEKY','HIP_BAT','HIP_CAT','PLUS_PLUS','ROBIN_HOOD','THE_TWINS']) expect(deck.filter(card=>card.type===type)).toHaveLength(3);
+    expect(new Set(deck.map(card=>card.instanceId)).size).toBe(80);
   });
   it('Amateur Archaeology chooses an eligible discard, reinserts privately',()=>{
     let state=play(game(3,'EXTENDED'),'a',['SEE_THE_FUTURE']);
@@ -303,7 +329,7 @@ describe('application expansion and resurrection',()=>{
     const state=play(game(3,'EXTENDED'),'a',['CREEPY_PEEKY'],'b');
     expect(getPrivateSnapshot(state,'a').privateData.peekHand?.cards).toEqual(pl(state,'b').hand);
     expect(getPrivateSnapshot(state,'c').privateData.peekHand).toBeUndefined();
-    expect(JSON.stringify(getSpectatorSnapshot(state))).not.toContain(pl(state,'b').hand[0]!.instanceId);
+    for(const card of pl(state,'b').hand) expect(JSON.stringify(getSpectatorSnapshot(state))).not.toContain(`"instanceId":"${card.instanceId}"`);
     assertInvariants(state);
   });
   it('Hip Bat demands a discard at each of three starts',()=>{

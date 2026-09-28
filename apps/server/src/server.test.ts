@@ -87,6 +87,22 @@ describe('Socket.IO room server', () => {
     return { players, roomCode };
   }
 
+  it('creates six-digit rooms and measures ping without changing room state or publishing snapshots', async () => {
+    const player = await guest('Ping Cat');
+    const result = await withAck(player.socket, 'room:create');
+    const code = result.roomCode as string;
+    expect(code).toMatch(/^[0-9]{6}$/);
+    const room = server.rooms.get(code)!;
+    expect(room.options.mode).toBe('EXTENDED');
+    const before = room.sequence;
+    let snapshots = 0;
+    player.socket.on('room:snapshot', () => snapshots++);
+    expect(await withAck(player.socket, 'connection:ping')).toEqual({ ok: true, serverNow: logicalNow });
+    expect(room.sequence).toBe(before);
+    expect(snapshots).toBe(0);
+    expect((await withAck(player.socket, 'connection:ping', { hand: true })).error?.code).toBe('BAD_REQUEST');
+  });
+
   it('locks concurrent Defuse picks, holds the full five seconds and deals only afterwards',async()=>{
     const {players,roomCode}=await startRoom(3,false),room=server.rooms.get(roomCode)!;
     const watcher=await guest('Watcher');
@@ -554,7 +570,7 @@ describe('Socket.IO room server', () => {
     expect(play.ok).toBe(true);
     expect(server.rooms.get(roomCode)!.game!.phase).toBe('NOPE_WINDOW');
     other.socket.disconnect();
-    logicalNow += 8_000;
+    logicalNow = server.rooms.get(roomCode)!.game!.deadlineAt! + 1;
     await new Promise((resolve) => setTimeout(resolve, 20));
     const after = server.rooms.get(roomCode)!.game!;
     expect(after.phase).not.toBe('NOPE_WINDOW');
@@ -586,7 +602,7 @@ describe('Socket.IO room server', () => {
     })).ok).toBe(true);
     expect(server.rooms.get(roomCode)!.game!.phase).toBe('DEFUSE_INSERT');
     actor.socket.disconnect();
-    logicalNow += 21_000;
+    logicalNow = server.rooms.get(roomCode)!.game!.deadlineAt! + 1;
     await new Promise((resolve) => setTimeout(resolve, 20));
     const resolved = server.rooms.get(roomCode)!.game!;
     expect(resolved.phase).not.toBe('DEFUSE_INSERT');

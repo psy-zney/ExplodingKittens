@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { actionEnvelopeSchema } from '@kittens/shared';
 
 export const nicknameSchema = z.string().trim().min(1).max(24);
-export const roomCodeSchema = z.string().trim().toUpperCase().regex(/^[A-HJ-NP-Z2-9]{6}$/);
+// Keep existing invite links usable during a rolling upgrade; new rooms are numeric.
+export const roomCodeSchema = z.string().trim().toUpperCase().regex(/^(?:[0-9]{6}|[A-HJ-NP-Z2-9]{6})$/);
 export const roomOptionsSchema = z.object({
   mode: z.enum(['BASE', 'EXTENDED']),
   resurrection: z.boolean(),
@@ -22,6 +23,7 @@ export const inboundSchemas = {
   'room:choose-defuse': z.object({ gameId: z.string().uuid(), cardId: z.string().min(1).max(80), actionId: z.string().uuid() }).strict(),
   'room:throw': z.object({ targetId: z.string().uuid(), prop: z.enum(['EGG','BOMB','ROCK']), actionId: z.string().uuid() }).strict(),
   'room:sync': z.object({}).strict(),
+  'connection:ping': z.object({}).strict(),
   'game:action': actionEnvelopeSchema,
 } as const;
 

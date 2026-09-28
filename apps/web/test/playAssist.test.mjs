@@ -1,11 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { inspectPlay } from '@kittens/shared/play-policy';
-import { selectCard, canSelect, suggestPlay, planAutoAction, secondsRemaining } from '../src/playAssist.ts';
+import { selectCard, selectHandCard, canSelect, suggestPlay, planAutoAction, secondsRemaining } from '../src/playAssist.ts';
 const card = (type, id = type) => ({ type, instanceId: id });
 const hand = [card('DEFUSE'), card('NOPE'), card('CAT_TACO', 't1'), card('CAT_TACO', 't2'), card('CAT_TACO', 't3'), card('SKIP'), card('ATTACK'), card('PLUS_PLUS')];
 const game = { gameId: 'g', turnId: 't', revision: 1, phase: 'TURN', currentPlayerId: 'a', players: [{id:'a',alive:true,handCount:8},{id:'b',alive:true,handCount:4}], pending: null };
 const mine = { ...game, hand, privateData: {} };
+
+test('direct hand selection infers pair/triple, deselects, replaces unrelated cards and supports ++', () => {
+  let selected = selectHandCard([], hand[2], hand);
+  selected = selectHandCard(selected, hand[3], hand);
+  assert.equal(inspectPlay(hand.filter(c => selected.includes(c.instanceId))).kind, 'PAIR');
+  selected = selectHandCard(selected, hand[4], hand);
+  assert.equal(inspectPlay(hand.filter(c => selected.includes(c.instanceId))).kind, 'TRIPLE');
+  selected = selectHandCard(selected, hand[3], hand);
+  assert.deepEqual(selected, ['t1', 't3']);
+  assert.deepEqual(selectHandCard(selected, hand[5], hand), ['SKIP']);
+  assert.deepEqual(selectHandCard(['ATTACK'], hand[7], hand), ['ATTACK', 'PLUS_PLUS']);
+  assert.deepEqual(selectHandCard(['PLUS_PLUS'], hand[6], hand), ['PLUS_PLUS', 'ATTACK']);
+  assert.deepEqual(selectHandCard(['t1'], hand[3], hand, true), ['t2']);
+});
 
 test('shared shapes support all legal combos and reject duplicates, mismatches and protected singles', () => {
   assert.equal(inspectPlay([hand[2],hand[3]]).kind,'PAIR');

@@ -16,7 +16,7 @@ export function makeDeck(mode:GameMode='BASE', resurrection=false, playerCount=5
     counts.EXPLODING_KITTEN = playerCount - 1;
     counts.DEFUSE = playerCount + 1;
   }
-  if (mode==='EXTENDED') for (const type of EXTENSION_TYPES) counts[type]=1;
+  if (mode==='EXTENDED') for (const type of EXTENSION_TYPES) counts[type]=3;
   if (resurrection) counts.RESURRECTION=2;
   let n=0;
   return Object.entries(counts).flatMap(([type,count])=>Array.from({length:count ?? 0},(_,artVariant)=>({instanceId:`card-${++n}`,type:type as CardType,artVariant})));

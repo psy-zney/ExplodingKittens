@@ -38,6 +38,7 @@ export function useGameConnection() {
   const sessionRef = useRef<Session | null>(null);
   const requestLock = useRef(false);
   const [clockOffsetMs, setClockOffsetMs] = useState(0);
+  const [pingMs, setPingMs] = useState<number | null>(null);
   const [connection, setConnection] = useState<Connection>('connecting');
   const [session, setSession] = useState<Session | null>(null);
   const [snapshot, setSnapshot] = useState<ServerSnapshot | null>(null);
@@ -56,7 +57,23 @@ export function useGameConnection() {
     const socket = io(SERVER_URL, { path: import.meta.env.VITE_SOCKET_PATH || '/socket.io', autoConnect: true, reconnection: true, reconnectionDelayMax: 3000, transports: ['websocket', 'polling'] });
     socketRef.current = socket;
     let disposed = false;
+    let measuring = false;
+    let clockMeasured = false;
     const stream = new LiveEventStream();
+    const measurePing = async () => {
+      if (disposed || !socket.connected || document.hidden || measuring) return;
+      measuring = true;
+      const start = performance.now();
+      const sentAt = Date.now();
+      try {
+        const result = await emitAck<{ serverNow: number }>(socket, 'connection:ping', {});
+        if (disposed || !socket.connected) return;
+        const elapsed = performance.now() - start;
+        setPingMs(result.ok ? Math.round(elapsed) : null);
+        if (result.ok && typeof result.serverNow === 'number') { clockMeasured = true; setClockOffsetMs(result.serverNow - (sentAt + elapsed / 2)); }
+      } finally { measuring = false; }
+    };
+    const pingTimer = window.setInterval(() => void measurePing(), 15000);
 
     socket.on('connect', async () => {
       stream.reset();
@@ -74,6 +91,7 @@ export function useGameConnection() {
       sessionRef.current = result.session;
       setSession(result.session);
       setConnection('connected');
+      void measurePing();
       const invite = new URLSearchParams(window.location.search).get('room')?.trim().toUpperCase();
       const remembered = localStorage.getItem(ROOM_KEY)?.trim().toUpperCase();
       const code = remembered && (!invite || invite === remembered) ? remembered : null;
@@ -88,8 +106,8 @@ export function useGameConnection() {
         } else setError(joined.error);
       }
     });
-    socket.on('disconnect', () => setConnection('offline'));
-    socket.on('connect_error', () => setConnection('offline'));
+    socket.on('disconnect', () => { clockMeasured = false; setConnection('offline'); setPingMs(null); });
+    socket.on('connect_error', () => { setConnection('offline'); setPingMs(null); });
     socket.on('room:snapshot', (next: ServerSnapshot) => {
       if (disposed) return;
       if (snapshotRef.current?.room.code !== next.room.code) {
@@ -99,7 +117,7 @@ export function useGameConnection() {
       }
       stream.hydrate(Array.isArray(next.events) ? next.events : []);
       snapshotRef.current = next;
-      if (typeof next.serverNow === 'number') setClockOffsetMs(next.serverNow - Date.now());
+      if (!clockMeasured && typeof next.serverNow === 'number') setClockOffsetMs(next.serverNow - Date.now());
       setSnapshot(next);
       setEvents(Array.isArray(next.events) ? next.events : []);
       setError(null);
@@ -112,7 +130,6 @@ export function useGameConnection() {
       setEvents((previous) => {
         const last = previous.at(-1)?.seq ?? 0;
         if (event.seq <= last) return previous;
-        if (last > 0 && event.seq > last + 1) void emitAck(socket, 'room:sync', {});
         return [...previous, event].slice(-100);
       });
       if (accepted.event && !document.hidden) {
@@ -124,13 +141,14 @@ export function useGameConnection() {
       setLiveEvents([]);
       setLatestEvent(null);
       if (!document.hidden && socket.connected) {
+        void measurePing();
         if (!snapshotRef.current) { window.dispatchEvent(new Event('kittens:state-synced')); return; }
         stream.reset();
         void emitAck(socket, 'room:sync', {});
       }
     };
     document.addEventListener('visibilitychange', visibility);
-    return () => { disposed = true; document.removeEventListener('visibilitychange', visibility); socket.disconnect(); socketRef.current = null; };
+    return () => { disposed = true; window.clearInterval(pingTimer); document.removeEventListener('visibilitychange', visibility); socket.disconnect(); socketRef.current = null; };
   }, []);
 
   const request = useCallback(async <T extends object>(event: string, payload: object): Promise<Success<T> | null> => {
@@ -195,7 +213,7 @@ export function useGameConnection() {
   }, [request]);
 
   return {
-    connection, session, snapshot, events, liveEvents, latestEvent, error, busy, clockOffsetMs,
+    connection, session, snapshot, events, liveEvents, latestEvent, error, busy, clockOffsetMs, pingMs,
     dismissError: () => setError(null), sync,
     createRoom, joinRoom, leaveRoom,
     ready: (ready: boolean) => request('room:ready', { ready }),

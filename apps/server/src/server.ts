@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
 import express from 'express';
 import { Server, type Socket } from 'socket.io';
@@ -72,7 +72,6 @@ export interface GameServerOptions {
   now?: () => number;
 }
 
-const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const MAX_PLAYERS = 5;
 const MIN_PLAYERS = 2;
 const RECONNECT_HOLD_MS = 120_000;
@@ -110,8 +109,7 @@ function ackFailure(error: unknown): AckFailure {
 
 function randomCode(rooms: Map<string, Room>): string {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const bytes = randomBytes(6);
-    const code = [...bytes].map((byte) => ROOM_ALPHABET[byte % ROOM_ALPHABET.length]).join('');
+    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     if (!rooms.has(code)) return code;
   }
   return fail('INTERNAL_ERROR');
@@ -424,7 +422,7 @@ export function createGameServer(options: GameServerOptions = {}) {
         hostId: session.playerId,
         status: 'LOBBY',
         draft:null, socialProcessed:new Map(),
-        options: requestedOptions ?? { mode: 'BASE', resurrection: false },
+        options: requestedOptions ?? { mode: 'EXTENDED', resurrection: false },
         players: new Map([[session.playerId, {
           id: session.playerId,
           name: session.nickname,
@@ -614,6 +612,8 @@ export function createGameServer(options: GameServerOptions = {}) {
         return result;
       });
     });
+
+    onEvent(socket, 'connection:ping', () => ({ serverNow: now() }));
 
     onEvent(socket, 'room:sync', async () => {
       const room = roomFor(socket);

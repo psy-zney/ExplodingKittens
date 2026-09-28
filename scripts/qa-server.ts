@@ -3,7 +3,7 @@
 import { createServer } from 'node:http';
 import { createGameServer } from '../apps/server/src/server.ts';
 import { assertInvariants } from '@kittens/engine';
-import type { CardType } from '@kittens/shared';
+import { GAME_TIMING, type CardType } from '@kittens/shared';
 
 const gameServer = createGameServer({ corsOrigins: ['http://localhost:5182', 'http://127.0.0.1:5182'] });
 const controls = createServer(async (request, response) => {
@@ -16,7 +16,7 @@ const controls = createServer(async (request, response) => {
     if (!room?.game || room.game.phase !== 'TURN') throw new Error('Fixture requires an idle turn');
     const state = room.game;
     const actor = state.players[0]!;
-    const types: CardType[] = fixture === 'hamster' ? ['DEFUSE', 'BATTLE_HAMSTER', 'SKIP', 'NOPE'] : ['DEFUSE', 'CAT_TACO', 'CAT_TACO', 'CAT_TACO', 'FAVOR', 'SEE_THE_FUTURE', 'SKIP', 'ATTACK', 'NOPE'];
+    const types: CardType[] = fixture === 'nope' ? ['DEFUSE', 'SHUFFLE', 'NOPE'] : fixture === 'no-nopes' ? ['DEFUSE','SHUFFLE'] : fixture === 'hamster' ? ['DEFUSE', 'BATTLE_HAMSTER', 'SKIP', 'NOPE'] : fixture === 'table' ? ['DEFUSE', 'CAT_TACO', 'CAT_TACO', 'CAT_TACO', 'SHUFFLE', 'SEE_THE_FUTURE', 'SKIP', 'ATTACK', 'PLUS_PLUS'] : ['DEFUSE', 'CAT_TACO', 'CAT_TACO', 'CAT_TACO', 'FAVOR', 'SEE_THE_FUTURE', 'SKIP', 'ATTACK', 'NOPE'];
     state.drawPile.push(...actor.hand.splice(0));
     for (const type of types) {
       const zones = [state.drawPile, ...state.players.slice(1).map(p => p.hand), state.discardPile, state.removed];
@@ -25,8 +25,13 @@ const controls = createServer(async (request, response) => {
       const index = zone.findIndex(c => c.type === type);
       actor.hand.push(zone.splice(index, 1)[0]!);
     }
+    if (fixture === 'no-nopes') for (const player of state.players) {
+      const nopes = player.hand.filter(card => card.type === 'NOPE');
+      player.hand = player.hand.filter(card => card.type !== 'NOPE');
+      state.drawPile.push(...nopes);
+    }
     state.currentPlayerId = actor.id;
-    state.deadlineAt = Date.now() + (fixture === 'timer' ? 4500 : 30000);
+    state.deadlineAt = Date.now() + (fixture === 'timer' ? 4500 : GAME_TIMING.turnMs);
     state.revision += 1;
     assertInvariants(state);
     response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ revision: state.revision }));

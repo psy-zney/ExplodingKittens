@@ -10,6 +10,15 @@ type Client = {
   snapshot: any; incoming: any[]; outgoing: any[]; errors: string[]; mobile: boolean;
 };
 
+async function menuClick(page: Page, name: string | RegExp) {
+  if (!await page.locator('.game-menu').evaluate(element => element.hasAttribute('open'))) await page.locator('.game-menu summary').click();
+  await page.locator('.game-menu').getByRole('button', { name, exact: false }).click();
+  await page.locator('.game-menu').evaluate(element => element.removeAttribute('open'));
+}
+async function assist(page: Page) {
+  if (!await page.locator('.table-assist-menu').evaluate(element => element.hasAttribute('open'))) await page.locator('.table-assist-menu > summary').click();
+}
+
 async function client(browser: Browser, index: number, mobile = false): Promise<Client> {
   const lang = index % 2 === 0 ? 'vi' : 'en';
   const context = await browser.newContext({
@@ -54,7 +63,7 @@ async function client(browser: Browser, index: number, mobile = false): Promise<
   await page.goto(process.env.QA_BASE_URL ?? 'http://localhost:5173');
   await expect(page.locator('.connection-indicator')).toHaveClass(/connected/);
   expect(await page.evaluate(() => (window as any).__qaAudio.contexts.length)).toBe(0);
-  if (lang === 'en') await page.getByRole('button', { name: 'EN', exact: true }).click();
+  if (lang === 'en') await menuClick(page, 'EN');
   await page.getByRole('textbox', { name: lang === 'vi' ? 'Tên của bạn' : 'Your name' }).fill(c.name);
   await expect(page.locator('.style-picker')).toHaveCount(0);
   await expect(page.locator('.mixed-deck-cards .playing-card')).toHaveCount(4);
@@ -230,7 +239,7 @@ test('illustrated deck: all four styles together, no style selectors, readable c
   for (const mobile of [false, true]) {
     const c = await client(browser, mobile ? 1 : 0, mobile);
     await expect(c.page.locator('.style-picker,.showcase-style-picker')).toHaveCount(0);
-    await c.page.getByRole('button', { name: c.lang === 'vi' ? /Kho thẻ bài/ : /Card Codex/, exact: false }).first().click();
+    await menuClick(c.page, c.lang === 'vi' ? 'Kho thẻ bài' : 'Card Codex');
     await expect(c.page.locator('.codex-mini-grid .playing-card')).toHaveCount(22);
     await expect(c.page.locator('.showcase-style-picker')).toHaveCount(0);
     const styles = await c.page.locator('.codex-mini-grid .playing-card').evaluateAll(cards => [...new Set(cards.map(card => card.getAttribute('data-art-style')))].sort());
@@ -244,7 +253,7 @@ test('illustrated deck: all four styles together, no style selectors, readable c
     expect(fit.content).toBeLessThanOrEqual(fit.width);
     await c.page.screenshot({ path: path.join(artifacts, `screenshots/mixed-codex-${mobile ? 'mobile' : 'desktop'}.png`) });
     await c.page.getByRole('button', { name: c.lang === 'vi' ? 'Đóng' : 'Close', exact: true }).click();
-    await c.page.getByRole('button', { name: c.lang === 'vi' ? 'Cài đặt' : 'Settings', exact: true }).click();
+    await menuClick(c.page, c.lang === 'vi' ? 'Cài đặt' : 'Settings');
     await expect(c.page.locator('.settings-modal .style-picker')).toHaveCount(0);
     await c.page.getByRole('button', { name: c.lang === 'vi' ? 'Đóng' : 'Close', exact: true }).click();
     for (const error of c.errors) expect(error).toBeUndefined();
@@ -290,6 +299,7 @@ test('five-second rescue draft: distinct cats, touch and keyboard picks, reconne
   expect(new Set(clients.map(c=>c.snapshot.game.private.hand[0].instanceId)).size).toBe(3);
   await beginFrames(host.page);
   const target=peer.snapshot.room.players.find((p:any)=>p.name===peer.name).id;
+  await host.page.locator('.social-menu > summary').click();
   await host.page.locator('.social-target select').selectOption(target);
   const revision=host.snapshot.game.public.revision,turnDeadline=host.snapshot.game.public.deadlineAt;
   for(const prop of ['EGG','BOMB','ROCK']){
@@ -305,6 +315,7 @@ test('five-second rescue draft: distinct cats, touch and keyboard picks, reconne
   thrown.forEach(p=>expect(Object.keys(p[1]).sort()).toEqual(['actionId','prop','targetId']));
   await expect(host.page.locator('.history-details')).toContainText('ném Đá nhỏ');
   await expect(peer.page.locator('.history-details')).toContainText('threw a Pebble');
+  await host.page.locator('.social-menu > summary').click();
   const outcome=await finishByDrawing(clients);
   await expect(host.page.locator('[data-effect-kind=explosion]')).toBeVisible();
   await expect(host.page.locator('[data-effect-kind=explosion] .effect-cat [data-card-type=EXPLODING_KITTEN]')).toBeVisible();
@@ -352,18 +363,21 @@ test('room chat: VI/EN messages, unread badge, safe text, reconnect, full game a
   await host.page.locator('#room-chat-input').fill(draft);
   await host.page.screenshot({ path: path.join(artifacts, 'screenshots/chat-lobby.png'), fullPage: true });
   await start(clients);
+  await host.page.locator('.room-chat-trigger').click();
   await expect(host.page.locator('#room-chat-input')).toHaveValue(draft);
-  await host.page.getByRole('button', { name: 'EN', exact: true }).click();
+  await menuClick(host.page, 'EN');
   await expect(host.page.getByRole('textbox', { name: 'Your message', exact: true })).toHaveValue(draft);
-  await host.page.getByRole('button', { name: 'VI', exact: true }).click();
+  await menuClick(host.page, 'VI');
   await host.page.locator('#room-chat-input').press('Enter');
   await expect(peer.page.locator('.room-chat-message p').last()).toHaveText(draft);
   await expect(host.page.locator('.history-details')).not.toContainText(draft);
   await refresh(peer);
   await expect(peer.page.locator('.room-chat-message p')).toHaveText([greeting, 'Hello\ncats!', draft]);
   await host.page.screenshot({ path: path.join(artifacts, 'screenshots/chat-table.png'), fullPage: true });
+  await host.page.locator('.chat-close').click();
   const played = await finishByDrawing(clients);
   await expect(host.page.locator('.room-chat-message p')).toHaveText([greeting, 'Hello\ncats!', draft]);
+  await peer.page.locator('.room-chat-trigger').click();
   await peer.page.locator('#room-chat-input').fill('Another round?');
   await peer.page.locator('.room-chat-form').getByRole('button', { name: /Send/ }).click();
   await expect(host.page.locator('.room-chat-message p').last()).toHaveText('Another round?');
@@ -441,7 +455,7 @@ test('two independent guests: VI/EN, mixed illustrations, audio, private insert,
   expect(await second.page.evaluate(() => localStorage.getItem('kittens.language'))).toBe('en');
   expect(await host.page.evaluate(() => localStorage.getItem('kittens.style'))).toBe('pen');
   expect(await second.page.evaluate(() => localStorage.getItem('kittens.style'))).toBe('stamp');
-  await host.page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
+  await menuClick(host.page, 'Cài đặt');
   const audioEnableButton = host.page.locator('.settings-modal').getByRole('button', { name: /Bật âm thanh|Enable audio/ });
   if (await audioEnableButton.isVisible()) await audioEnableButton.click();
   await expect.poll(() => host.page.evaluate(() => (window as any).__qaAudio.contexts[0]?.state)).toBe('running');
@@ -469,9 +483,9 @@ test('two independent guests: VI/EN, mixed illustrations, audio, private insert,
   }
   await expect(host.page.locator('.hand-card').first()).toHaveClass(/tone-green/);
   const beforePreference = JSON.stringify(host.snapshot.game);
-  await host.page.getByRole('button', { name: 'EN', exact: true }).click();
+  await menuClick(host.page, 'EN');
   await expect(host.page.locator('.table-status h1')).toHaveText('Your turn');
-  await host.page.getByRole('button', { name: 'VI', exact: true }).click();
+  await menuClick(host.page, 'VI');
   await expect(host.page.locator('.table-status h1')).toHaveText('Lượt của bạn');
   expect(JSON.stringify(host.snapshot.game)).toBe(beforePreference);
   await host.page.screenshot({ path: path.join(artifacts, 'screenshots/table-desktop.png'), fullPage: true });
@@ -531,7 +545,9 @@ test('mobile touch viewport: choose cards and every insert slot, complete a real
   await start(clients);
   await expect(host.page.locator('.hand-scroll .cat-art-svg')).toHaveCount(8);
   await host.page.screenshot({ path: path.join(artifacts, 'screenshots/table-mobile.png'), fullPage: true });
-  await host.page.locator('.hand-card').first().tap();
+  const firstCard = host.page.locator('.hand-card').first();
+  const firstCardBounds = await firstCard.boundingBox();
+  await firstCard.tap({ position: { x: 14, y: firstCardBounds!.height - 8 } });
   await expect(host.page.locator('.hand-card').first()).toHaveAttribute('aria-pressed', 'true');
   await host.page.getByRole('button', { name: 'Bỏ chọn', exact: true }).tap();
   const width = await host.page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
@@ -614,35 +630,37 @@ test('composer: pair, triple, visible targets, single replacement, Favor, hints 
     Date.now = () => originalNow() + 120000;
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await expect.poll(() => host.page.locator('.countdown').textContent()).toMatch(/^(2\d|30)s$/);
-  await expect(host.page.locator('.phase-coach')).toContainText('Hết giờ: server rút');
+  await expect.poll(() => host.page.locator('.countdown').textContent()).toMatch(/^(4\d|45)s$/);
+  await expect(host.page.locator('.phase-coach')).toContainText('Lượt thường');
+  await assist(host.page);
   await expect(host.page.locator('#auto-mode')).toHaveValue('OFF');
-  await expect(host.page.locator('.hand-card.is-suggested')).toHaveCount(1);
-  await expect(host.page.locator('.hand-card.is-suggested .card-hint')).toBeVisible();
-  await host.page.getByRole('button',{name:'2 · Cặp cùng tên',exact:true}).click();
+  await expect(host.page.locator('.suggestion-bar')).toBeVisible();
+  await host.page.locator('.table-assist-menu > summary').click();
+
   await expect(host.page.locator('.hand-card.is-suggested')).toHaveCount(0);
   await selectType(host,'CAT_TACO',2);
   const catIndices = host.snapshot.game.private.hand.map((card:any,index:number)=>card.type==='CAT_TACO'?index:-1).filter((index:number)=>index>=0);
+  await host.page.locator('.hand-card').nth(catIndices[1]!).click();
   await host.page.locator('.hand-card').nth(catIndices[2]!).click();
   await expect(host.page.locator('.hand-card.is-selected')).toHaveCount(2);
   await expect(host.page.locator('.play-submit')).toBeDisabled();
   await expect(host.page.locator('.compose-hint')).toContainText('Chưa chọn người');
-  const target = host.page.locator('.target-picker button').first();
+  const target = host.page.locator('.seat-target.can-target').first();
   await target.focus(); await host.page.keyboard.press('Enter');
   await expect(target).toHaveAttribute('aria-pressed','true');
   const colors = await target.evaluate(el => {const s=getComputedStyle(el);return {fg:s.color,bg:s.backgroundColor,height:el.getBoundingClientRect().height};});
-  expect(colors.fg).not.toBe(colors.bg);expect(colors.height).toBeGreaterThanOrEqual(44);
+  expect(colors.fg).not.toBe(colors.bg);await expect.poll(async () => (await target.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await mkdir(path.join(artifacts,'screenshots'),{recursive:true});
   await host.page.screenshot({path:path.join(artifacts,'screenshots/composer-target-picker.png'),fullPage:true});
   await expect(host.page.locator('.play-submit')).toBeEnabled();
   await host.page.locator('.play-submit').click();await passWindow(clients);
   expect(host.snapshot.events.some((e:any)=>e.key==='combo.pair')).toBe(true);
   await fixture(clients,code);
-  await host.page.getByRole('button',{name:'3 · Bộ ba cùng tên',exact:true}).click();
+
   await selectType(host,'CAT_TACO',3);
-  await host.page.locator('.target-picker button').last().click();
-  await host.page.locator('.requested-picker button').filter({hasText:/Cứu nổ/i}).click();
-  await expect(host.page.locator('.requested-picker button[aria-pressed=true]')).toContainText(/Cứu nổ/i);
+  await host.page.locator('.seat-target.can-target').last().click();
+  await host.page.locator('.requested-picker select').selectOption('DEFUSE');
+  await expect(host.page.locator('.requested-picker select')).toHaveValue('DEFUSE');
   await host.page.screenshot({path:path.join(artifacts,'screenshots/composer-triple.png'),fullPage:true});
   await host.page.locator('.play-submit').click();
   await expect.poll(()=>host.snapshot.game.public.phase).toBe('NOPE_WINDOW');
@@ -651,10 +669,10 @@ test('composer: pair, triple, visible targets, single replacement, Favor, hints 
   await passWindow(clients);
   expect(host.snapshot.events.some((e:any)=>e.key==='combo.triple')).toBe(true);
   await fixture(clients,code);
-  await host.page.getByRole('button',{name:'1 · Lá chức năng',exact:true}).click();
+
   await selectType(host,'SKIP');await selectType(host,'FAVOR');
   await expect(host.page.locator('.hand-card.is-selected')).toHaveCount(1);
-  await host.page.locator('.target-picker button').first().click();
+  await host.page.locator('.seat-target.can-target').first().click();
   const chosen = clients[1]!;
   await host.page.locator('.play-submit').click();await passWindow(clients);
   await expect.poll(()=>host.snapshot.game.public.phase).toBe('FAVOR_CHOICE');
@@ -673,10 +691,10 @@ test('composer: pair, triple, visible targets, single replacement, Favor, hints 
 test('Hamster choices discard one card at a time with readable progress', async ({browser}) => {
   test.skip(process.env.QA_FIXTURES !== '1', 'Controlled deals use the separate local QA server only');
   const {clients,host,code} = await lobby(browser,2);
-  await host.page.locator('.lobby-side select').selectOption('EXTENDED');
+  await host.page.locator('.lobby-side .mode-toggle-btn').last().click();
   await expect.poll(()=>host.snapshot.room.options.mode).toBe('EXTENDED');
   await start(clients);await fixture(clients,code,'hamster');
-  await selectType(host,'BATTLE_HAMSTER');await host.page.locator('.target-picker button').first().click();
+  await selectType(host,'BATTLE_HAMSTER');await host.page.locator('.seat-target.can-target').first().click();
   await host.page.locator('.play-submit').click();await passWindow(clients);
   const target = clients[1]!;
   while(host.snapshot.game.public.phase === 'BATTLE_HAMSTER_DISCARD') {
@@ -697,6 +715,7 @@ test('autodraw near deadline and manual card selection cancel queued autoplay', 
   test.skip(process.env.QA_FIXTURES !== '1', 'Short deadline uses the separate local QA server only');
   const {clients,host,code} = await lobby(browser,2);
   await start(clients);await fixture(clients,code);
+  await assist(host.page);
   await host.page.locator('#auto-mode').selectOption('BASIC');
   await selectType(host,'SKIP');
   await expect(host.page.locator('#auto-mode')).toHaveValue('OFF');
@@ -705,6 +724,7 @@ test('autodraw near deadline and manual card selection cancel queued autoplay', 
   expect(host.outgoing.filter(p=>p[0]==='game:action')).toHaveLength(before);
   await fixture(clients,code,'timer');
   const revision=host.snapshot.game.public.revision;
+  await assist(host.page);
   await host.page.locator('#auto-mode').selectOption('DRAW');
   await expect.poll(()=>host.outgoing.filter(p=>p[0]==='game:action').length,{timeout:32000}).toBe(before+1);
   expect(host.outgoing.filter(p=>p[0]==='game:action').at(-1)[1].action.type).toBe('DRAW_CARD');
@@ -719,7 +739,7 @@ test('opt-in basic autoplay completes a real match and resets on rematch', async
   const {clients,host} = await lobby(browser,2);
   await start(clients);
   await beginFrames(host.page);
-  for(const c of clients) {await expect(c.page.locator('#auto-mode')).toHaveValue('OFF');await c.page.locator('#auto-mode').selectOption('BASIC');}
+  for(const c of clients) {await assist(c.page);await expect(c.page.locator('#auto-mode')).toHaveValue('OFF');await c.page.locator('#auto-mode').selectOption('BASIC');}
   await expect.poll(()=>host.snapshot.room.status,{timeout:300000}).toBe('FINISHED');
   await synced(clients,host.snapshot.game.public.revision);
   await Promise.all(clients.map(c=>expect(c.page.locator('.result-layout')).toBeVisible()));
