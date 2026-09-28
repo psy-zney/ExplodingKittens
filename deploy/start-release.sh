@@ -9,7 +9,7 @@ sudo -n docker compose config --quiet
 # an already connected room. Rooms and guest sessions live in this process.
 sudo -n docker compose build game-server
 connections=$(sudo -n ss -Hnt state established '( sport = :3105 )' | wc -l)
-if [ "$connections" -ne 0 ]; then
+if [ "${FORCE_RELEASE:-0}" != "1" ] && [ "$connections" -ne 0 ]; then
     printf '%s\n' "Release stopped: $connections backend connection(s) remain. Finish active rooms before replacing the server." >&2
     exit 1
 fi
