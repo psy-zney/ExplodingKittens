@@ -532,12 +532,19 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
       activeSfxGain: null
     };
 
+    fetch(import.meta.env.BASE_URL + 'audio/bgm.mp3').then(r => r.arrayBuffer()).then(b => context.decodeAudioData(b)).then(ab => {
+      const src = context.createBufferSource();
+      src.buffer = ab;
+      src.loop = true;
+      const bgmVolume = context.createGain();
+      bgmVolume.gain.value = 0.25; // Reduce base volume
+      src.connect(bgmVolume).connect(musicGain);
+      src.start();
+    }).catch(() => {});
+
     state.interval = window.setInterval(() => {
-      if (document.hidden) return;
-      while (state.nextBeat < context.currentTime + 0.25) {
-        scheduleBeat(state);
-      }
-    }, 60);
+      // Background music is now playing via AudioBufferSourceNode
+    }, 1000);
 
     stateRef.current = state;
     setEnabled(true);

@@ -87,7 +87,7 @@ function Entry({ lang, connection, busy, createRoom, joinRoom, onOpenCodex }: {
   const [resurrection, setResurrection] = useState(false);
   const valid = name.trim().length >= 1 && connection === 'connected' && !busy;
   return <main className={`entry-layout lang-${lang}`}>
-    <section className="entry-intro"><div className="entry-mark entry-mark-gif" aria-hidden="true"><img src={import.meta.env.BASE_URL+'logo.svg'} alt="" className="cat-mascot-gif" /></div><span className="eyebrow">01 / {lang === 'vi' ? 'BÀN BÀI' : 'THE TABLE'}</span><h1>{t(lang, 'brand')}<span className="title-dot">.</span></h1><p>{t(lang, 'tagline')}</p><div className="entry-aside">{lang === 'vi' ? 'Một con mèo trông có vẻ đã đọc luật. Không ai tin nó.' : 'One cat appears to have read the rules. Nobody believes it.'}</div></section>
+    <section className="entry-intro"><div className="entry-mark entry-mark-gif" aria-hidden="true"><img src={import.meta.env.BASE_URL+'cat-mascot.gif'} alt="" className="cat-mascot-gif" /></div><span className="eyebrow">01 / {lang === 'vi' ? 'BÀN BÀI' : 'THE TABLE'}</span><h1>{t(lang, 'brand')}<span className="title-dot">.</span></h1><p>{t(lang, 'tagline')}</p><div className="entry-aside">{lang === 'vi' ? 'Một con mèo trông có vẻ đã đọc luật. Không ai tin nó.' : 'One cat appears to have read the rules. Nobody believes it.'}</div></section>
     <section className="entry-form-panel" aria-label={t(lang, 'playNow')}>
       <label className="field"><span>{t(lang, 'nickname')}</span><input maxLength={24} value={name} onChange={event => setName(event.currentTarget.value)} placeholder={t(lang, 'nicknamePlaceholder')} autoComplete="nickname"/></label>
       

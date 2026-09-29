@@ -1,7 +1,7 @@
-.room-layout{display:grid;grid-template-columns:minmax(0,1fr) 326px;flex:1;max-width:1800px;width:100%;margin:0 auto}
-.room-main{min-width:0}
+.room-layout{display:grid;grid-template-columns:minmax(0,1fr) 326px;flex:1;max-width:1800px;width:100%;margin:0 auto;min-height:0;max-height:calc(100dvh - 114px)}
+.room-main{min-width:0;height:100%;overflow-y:auto}
 .room-layout .table-layout{grid-template-columns:1fr;min-height:calc(100dvh - 114px)}
-.room-sidebar{min-width:0;border-left:1px solid var(--line);padding:18px 14px;background:var(--paper)}
+.room-sidebar{min-width:0;border-left:1px solid var(--line);padding:18px 14px;background:var(--paper);height:100%;overflow-y:auto}
 .room-sidebar-sticky{position:sticky;top:16px;display:flex;flex-direction:column;gap:16px}
 .room-chat-panel{background:var(--card);border:1px solid var(--ink);color:var(--ink);display:flex;flex-direction:column;height:min(540px,calc(100dvh - 120px));min-height:360px;box-shadow:4px 4px 0 var(--line)}
 .room-chat-panel[hidden]{display:none}
