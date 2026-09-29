@@ -233,73 +233,6 @@ function catMeow(ctx: AudioContext, output: AudioNode, at: number, mood: 'happy'
   }
 }
 
-/** Nhạc nền sống động: Lo-Fi Chiptune Mèo Nổ với Bassline, Melody & Trống điện tử */
-function scheduleBeat(state: SoundState) {
-  const { context, musicGain, noiseBuffer, mode } = state;
-  const at = state.nextBeat;
-  const beat = state.beat % 32; // Vòng lặp 32 nhịp (8 ô nhịp 4/4)
-
-  if (mode === 'lobby') {
-    // LOBBY BGM (Nhịp Lo-fi thư thái, ấm áp, hóm hỉnh): 105 BPM -> 0.285s/beat
-    // Kick drum nhẹ ở nhịp 0, 8, 16, 24
-    if (beat % 8 === 0) {
-      tone(context, musicGain, at, 110, 0.14, 0.08, 'sine', 38);
-    }
-    // Snare brush ở nhịp 4, 12, 20, 28
-    if (beat % 8 === 4) {
-      noiseBurst(context, noiseBuffer, musicGain, at, 0.08, 0.035, 'bandpass', 1800);
-    }
-    // Hi-hat nhấp nhô
-    if (beat % 2 === 0) {
-      noiseBurst(context, noiseBuffer, musicGain, at, 0.03, 0.018, 'highpass', 5500);
-    }
-
-    // Walking Bassline mèo dạo chơi (gam Đô trưởng / Fa trưởng nhẹ nhàng)
-    const lobbyBass = [130, 146, 164, 174, 196, 174, 164, 146];
-    const bassNote = lobbyBass[Math.floor(beat / 4) % lobbyBass.length] ?? 130;
-    if (beat % 4 === 0 || beat % 4 === 2) {
-      tone(context, musicGain, at, bassNote, 0.22, 0.045, 'triangle');
-    }
-
-    // Giai điệu Chiptune mèo con ngẫu hứng
-    const lobbyMelody: Record<number, number> = {
-      2: 523, 5: 587, 8: 659, 11: 784, 14: 659,
-      18: 587, 21: 523, 24: 440, 27: 392, 30: 523
-    };
-    if (lobbyMelody[beat]) {
-      tone(context, musicGain, at, lobbyMelody[beat], 0.16, 0.022, 'sine');
-    }
-    state.nextBeat += 0.285;
-  } else {
-    // GAME BGM (Hồi hộp, kịch tính, nhịp nhanh 128 BPM -> 0.234s/beat)
-    // Electro Kick đập dồn dập
-    if (beat % 4 === 0) {
-      tone(context, musicGain, at, 130, 0.16, 0.12, 'sine', 35);
-    }
-    // Snare đanh thép
-    if (beat % 8 === 4) {
-      noiseBurst(context, noiseBuffer, musicGain, at, 0.12, 0.07, 'bandpass', 2400);
-      tone(context, musicGain, at, 220, 0.08, 0.05, 'triangle', 90);
-    }
-    // Hi-hat chạy liên tục
-    noiseBurst(context, noiseBuffer, musicGain, at, 0.025, beat % 2 === 0 ? 0.025 : 0.015, 'highpass', 6500);
-
-    // Bassline căng thẳng, dồn dập theo phong cách funk synth
-    const gameBass = [82, 82, 98, 82, 110, 82, 123, 110];
-    const gBass = gameBass[Math.floor(beat / 4) % gameBass.length] ?? 82;
-    if (beat % 2 === 0) {
-      tone(context, musicGain, at, gBass, 0.12, 0.065, 'sawtooth', gBass * 0.9);
-    }
-
-    // Arpeggio điện tử cảnh báo bom mèo
-    const arpNotes = [440, 523, 659, 784, 880, 784, 659, 523];
-    const arpNote = arpNotes[beat % arpNotes.length] ?? 440;
-    tone(context, musicGain, at, arpNote, 0.06, 0.018, 'square');
-
-    state.nextBeat += 0.234;
-  }
-  state.beat += 1;
-}
 
 /** Phát hiệu ứng âm thanh (Sound Effects - SFX) sắc nét, chân thực */
 function cue(state: SoundState, name: string, now: number, meta?: { defuseCount?: number }) {
@@ -537,7 +470,7 @@ export function useAudio(mode: 'lobby' | 'game', liveEvents: GameEvent[]) {
       src.buffer = ab;
       src.loop = true;
       const bgmVolume = context.createGain();
-      bgmVolume.gain.value = 0.25; // Reduce base volume
+      bgmVolume.gain.value = 0.8; // Adjust base volume
       src.connect(bgmVolume).connect(musicGain);
       src.start();
     }).catch(() => {});
